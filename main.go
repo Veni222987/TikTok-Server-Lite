@@ -7,15 +7,18 @@ import (
 )
 
 func main() {
+	//// 获取结构体
+	//utils.TableConverter()
+
 	r := gin.Default()
 
 	//初始化路由
 	InitRouter(r)
-	InitDatabases()
+	model.InitDatabases()
 
-	u := model.User{111, "Veni"}
+	u := model.User{Id: 111, Name: "Veni"}
 
-	res := Db.Create(&u)
+	res := model.Db.Create(&u)
 	if err := res.Error; err != nil {
 		fmt.Println("插入失败", err)
 		return
