@@ -1,0 +1,7 @@
+database:
+  driver: mysql
+  host: 47.113.149.158
+  port: 3306
+  username: veni
+  password: asdfghjkl
+  database: dousheng
