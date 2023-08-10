@@ -1,3 +1,4 @@
 #IDE文件
 .idea
 
+*.exe

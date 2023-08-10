@@ -11,10 +11,11 @@ func main() {
 
 	//初始化路由
 	InitRouter(r)
-	db = InitDatabases()
+	InitDatabases()
 
-	u := model.User{222, "Veni"}
-	res := db.Create(&u)
+	u := model.User{111, "Veni"}
+
+	res := Db.Create(&u)
 	if err := res.Error; err != nil {
 		fmt.Println("插入失败", err)
 		return

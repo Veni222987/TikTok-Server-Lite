@@ -22,9 +22,9 @@ var config struct {
 	Database DatabaseConfig `yaml:"database"`
 }
 
-var db *gorm.DB
+var Db *gorm.DB
 
-func InitDatabases() *gorm.DB {
+func InitDatabases() {
 	configFile, err := os.ReadFile("config.yaml")
 	if err != nil {
 		log.Fatal(err)
@@ -43,11 +43,9 @@ func InitDatabases() *gorm.DB {
 		config.Database.Database,
 	)
 
-	db, err = gorm.Open(mysql.Open(dbstr), &gorm.Config{})
+	Db, err = gorm.Open(mysql.Open(dbstr), &gorm.Config{})
 
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	return db
 }
