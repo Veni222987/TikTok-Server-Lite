@@ -25,7 +25,7 @@ var config struct {
 var Db *gorm.DB
 
 func InitDatabases() {
-	configFile, err := os.ReadFile("config.yaml")
+	configFile, err := os.ReadFile("DBConfig.yaml")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func InitDatabases() {
 		log.Fatal(err)
 	}
 
-	dbstr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		config.Database.Username,
 		config.Database.Password,
 		config.Database.Host,
@@ -43,7 +43,7 @@ func InitDatabases() {
 		config.Database.Database,
 	)
 
-	Db, err = gorm.Open(mysql.Open(dbstr), &gorm.Config{})
+	Db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
 		log.Fatal(err)
