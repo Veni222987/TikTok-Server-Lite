@@ -77,9 +77,17 @@ func Feed(c *gin.Context) {
 		// 数据库查询是否点赞
 		var count int64
 		model.Db.Table("like").Where("user_id = ? AND video_id = ?", user_t.ID, videos[index].ID).Count(&count)
-		if count != 1 {
+		if count != 0 {
 			videos[index].IsFavorite = true
 		}
+	}
+	if len(videos) == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"status_code": 0,
+			"status_msg":  "成功",
+			"next_time":   10000,
+			"video_list":  nil,
+		})
 	}
 	// 返回数据
 	c.JSON(http.StatusOK, gin.H{

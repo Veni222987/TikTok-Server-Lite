@@ -136,12 +136,63 @@ func UploadVideo(c *gin.Context) {
 
 func PublishList(c *gin.Context) {
 	// 获取参数
-	token := c.Query("token")
-	// 验证用户身份
-	println(token)
 	user_id := c.Query("user_id")
 	// 查询数据库封装数据
-	println(user_id)
+	// 临时结构体
+	// user
+	type user struct {
+		Avatar          string `json:"avatar"`           // 用户头像
+		BackgroundImage string `json:"background_image"` // 用户个人页顶部大图
+		FavoriteCount   int64  `json:"favorite_count"`   // 喜欢数
+		FollowCount     int64  `json:"follow_count"`     // 关注总数
+		FollowerCount   int64  `json:"follower_count"`   // 粉丝总数
+		ID              int64  `json:"id" gorm:"id"`     // 用户id
+		IsFollow        bool   `json:"is_follow"`        // true-已关注，false-未关注
+		Name            string `json:"name"`             // 用户名称
+		Signature       string `json:"signature"`        // 个人简介
+		TotalFavorited  string `json:"total_favorited"`  // 获赞数量
+		WorkCount       int64  `json:"work_count"`       // 作品数
+	}
+	// video
+	type video struct {
+		AuthorId      int64  `json:"-"`
+		Author        user   `json:"author"`                     // 视频作者信息
+		CommentCount  int64  `json:"comment_count"`              // 视频的评论总数
+		CoverURL      string `json:"cover_url" gorm:"cover_url"` // 视频封面地址
+		FavoriteCount int64  `json:"favorite_count"`             // 视频的点赞总数
+		ID            int64  `json:"id" gorm:"id"`               // 视频唯一标识
+		IsFavorite    bool   `json:"is_favorite"`                // true-已点赞，false-未点赞
+		PlayURL       string `json:"play_url" gorm:"play_url"`   // 视频播放地址
+		Title         string `json:"title"`                      // 视频标题
+		Time          int64  `json:"time"`                       //视频发布时间
+	}
+	var videos []video
+	var user_t user
+	model.Db.Table("video").Where("author_id = ?", user_id).First(&videos)
+	if len(videos) == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"status_code": 0,
+			"status_msg":  "",
+			"video_list":  nil,
+		})
+	}
+	for index, video_t := range videos {
+		model.Db.Table("user").Find(&user_t, video_t.AuthorId)
+		videos[index].Author = user_t
+		// 数据库查询是否关注
+
+		// 数据库查询是否点赞
+		var count int64
+		model.Db.Table("like").Where("user_id = ? AND video_id = ?", user_t.ID, videos[index].ID).Count(&count)
+		if count != 0 {
+			videos[index].IsFavorite = true
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status_code": 0,
+		"status_msg":  "",
+		"video_list":  videos,
+	})
 }
 
 // 获取封面
