@@ -85,11 +85,18 @@ func Login(ctx *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
+	//获取user_id
+	var uid64 int64
+
+	res := model.Db.Table("user").Select("id").Where("name=?", name).Find(&uid64)
+	if res.Error != nil {
+		panic(res.Error)
+	}
 	//返回结果
 	ctx.JSON(200, gin.H{
 		"status_code": 0,
-		"status_msg":  "登陆成功",
-		"user_id":     0,
+		"status_msg":  "string",
+		"user_id":     uid64,
 		"token":       token,
 	})
 }
