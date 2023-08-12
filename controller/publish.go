@@ -1,13 +1,18 @@
 package controller
 
 import (
+	"DoushengABCD/model"
+	"DoushengABCD/service"
 	"DoushengABCD/utils"
+	"fmt"
 	_ "fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -16,22 +21,36 @@ type Response struct {
 	StatusMsg  string `json:"status_msg,omitempty"`
 }
 
-// 投稿接口
+// UploadVideo 投稿接口
 func UploadVideo(c *gin.Context) {
-	//1 验证
+	video := model.Video{FavoriteCount: 0, CommentCount: 0}
 	// 从请求的表单中获取名为 "token" 的值，并将其赋值给变量 token。
 	token := c.PostForm("token")
-	// 检查用户的token是否有效，数据库操作,从token中解析出用户信息
-	//2 获取信息
-	println(token)
-	// 从请求的表单中获取名为 "title" 的值，并将其赋值给变量 title。
-	title := c.PostForm("title")
-	// 生成视频ID
-	id := utils.GenVideoID()
-	// 检验唯一性数据库查查询操作
-
-	// 写入数据库
-	println(title)
+	// 获取用户id
+	uid, err := service.RedisClient.Get(token).Result()
+	if err == redis.Nil {
+		fmt.Println("key不存在")
+	} else if err != nil {
+		panic(err)
+	} else {
+		video.AuthorId, err = strconv.ParseInt(uid, 10, 64)
+		if err != nil {
+			c.JSON(1, "用户id获取失败")
+		}
+	}
+	// 从请求的表单中获取名为 "title" 的值。
+	video.Title = c.PostForm("title")
+	var id int64
+	for {
+		// 生成视频ID
+		id := utils.GenVideoID()
+		// 检验唯一性数据库查查询操作
+		var count int64
+		model.Db.Table("video").Where("id = ?", id).Count(&count)
+		if count == 0 {
+			break
+		}
+	}
 	// c.FormFile函数来获取文件对象
 	data, err := c.FormFile("data")
 	// 错误处理
@@ -42,7 +61,6 @@ func UploadVideo(c *gin.Context) {
 		})
 		return
 	}
-
 	// 获取文件名例：bear.mp4
 	videoName := filepath.Base(data.Filename)
 	// 文件名切分
@@ -50,7 +68,8 @@ func UploadVideo(c *gin.Context) {
 	// 文件名转换
 	finalVideoName := string(id) + parts[1]
 	finalCoverName := string(id) + ".jpg"
-	// 数据存入数据库
+	video.PlayUrl = "https://oss-cn-guangzhou.aliyuncs.com/videos/" + finalVideoName
+	video.CoverUrl = "https://oss-cn-guangzhou.aliyuncs.com/covers/" + finalCoverName
 	// 生成视频、封面相对路径
 	saveVideoFile := filepath.Join("./public/", finalVideoName)
 	saveCoverFile := filepath.Join("./public", finalCoverName)
@@ -100,11 +119,18 @@ func UploadVideo(c *gin.Context) {
 			return
 		}
 	}()
+	// 写入数据库
+	result := model.Db.Table("video").Create(&video)
+	if result.Error != nil {
+		c.JSON(http.StatusOK, Response{
+			StatusCode: 2,
+			StatusMsg:  "数据库上传失败",
+		})
+	}
 	// 成功返回响应
-	var fileName string
 	c.JSON(http.StatusOK, Response{
 		StatusCode: 0,
-		StatusMsg:  fileName + " uploaded successfully",
+		StatusMsg:  " uploaded successfully",
 	})
 }
 

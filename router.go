@@ -16,8 +16,8 @@ func InitRouter(r *gin.Engine) {
 	router.GET("/user/", controller.GetUserInfo)
 	router.POST("/user/register/", controller.Register)
 	router.POST("/user/login/", controller.Login)
-	router.POST("/publish/action/", controller.UploadVideo)
-	router.GET("/publish/list/", controller.PublishList)
+	router.POST("/publish/action/", service.AuthMiddleWare(), controller.UploadVideo)
+	router.GET("/publish/list/", service.AuthMiddleWare(), controller.PublishList)
 
 	// extra apis - I
 	router.POST("/favorite/action/", service.AuthMiddleWare(), controller.Like)
