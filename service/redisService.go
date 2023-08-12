@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"github.com/go-redis/redis"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -20,7 +19,7 @@ var redisConfig struct {
 var RedisClient *redis.Client
 
 func InitRedis() {
-	configFile, err := os.ReadFile("RedisConfig.yaml")
+	configFile, err := os.ReadFile("config.yaml")
 	if err != nil {
 		panic(err)
 	}
@@ -31,8 +30,6 @@ func InitRedis() {
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Printf("Redis配置%+v", redisConfig)
 
 	RedisClient = redis.NewClient(&redis.Options{
 		Addr:     redisConfig.Redis.Addr,     // Redis服务器地址

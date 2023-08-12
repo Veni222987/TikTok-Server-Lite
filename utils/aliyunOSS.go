@@ -3,6 +3,8 @@ package utils
 import (
 	"errors"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"gopkg.in/yaml.v3"
+	"os"
 )
 
 /*
@@ -12,7 +14,26 @@ fileName：文件名（例如xxx.mp4）
 localFilePath:本地文件路径（相对根目录路径或绝对路径）
 return：报错
 */
+type OSSConfig struct {
+	Endpoint     string `yaml:"endpoint"`
+	AccessKey    string `yaml:"accessKey"`
+	AccessSecret string `yaml:"accessSecret"`
+}
+
 func AliyunOSSUpload(t string, fileName string, localFilePath string) error {
+	var ossConfig struct {
+		oss OSSConfig `yaml:"OSS"`
+	}
+	//读取阿里云OSS配置
+	configFile, err := os.ReadFile("config.yaml")
+	if err != nil {
+		panic(err)
+	}
+	err = yaml.Unmarshal(configFile, &ossConfig)
+	if err != nil {
+		panic(err)
+	}
+
 	// yourBucketName填写存储空间名称。
 	bucketName := "abcd-dousheng"
 	// yourObjectName填写Object完整路径，完整路径不包含Bucket名称。
@@ -31,7 +52,8 @@ func AliyunOSSUpload(t string, fileName string, localFilePath string) error {
 	localFileName := localFilePath
 	// 创建OSSClient实例。
 	// yourEndpoint填写Bucket对应的Endpoint
-	client, err := oss.New("https://oss-cn-guangzhou.aliyuncs.com", "LTAI5t9K833uebsoQvSDZxDH", "VO2AUub801jTf6KFczQZoRf4CZhJY0")
+	client, err := oss.New(ossConfig.oss.Endpoint, ossConfig.oss.AccessKey, ossConfig.oss.AccessSecret)
+	//fmt.Printf("#+v", ossConfig)
 	if err != nil {
 		return err
 	}

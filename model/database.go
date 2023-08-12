@@ -25,7 +25,7 @@ var config struct {
 var Db *gorm.DB
 
 func InitDatabases() {
-	configFile, err := os.ReadFile("DBConfig.yaml")
+	configFile, err := os.ReadFile("config.yaml")
 	if err != nil {
 		log.Fatal(err)
 	}
