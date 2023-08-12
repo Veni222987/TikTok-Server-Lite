@@ -16,7 +16,7 @@ func main() {
 	InitRouter(r)
 	model.InitDatabases()
 	service.InitRedis()
-
+	
 	//u := model.User{Id: 111, Name: "Veni"}
 	//
 	//res := model.Db.Create(&u)
