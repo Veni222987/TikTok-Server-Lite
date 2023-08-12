@@ -1,7 +1,7 @@
 package model
 
 type User struct {
-	Id              int    `gorm:"id"`               // 用户id
+	Id              int64  `gorm:"id"`               // 用户id
 	Name            string `gorm:"name"`             // 用户名称
 	FollowCount     int    `gorm:"follow_count"`     // 关注总数
 	FollowerCount   int    `gorm:"follower_count"`   // 粉丝总数

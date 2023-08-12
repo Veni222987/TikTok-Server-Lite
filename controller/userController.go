@@ -2,6 +2,7 @@ package controller
 
 import (
 	"DoushengABCD/model"
+	"DoushengABCD/service"
 	"DoushengABCD/utils"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -10,33 +11,14 @@ import (
 	"net/http"
 )
 
+// 用户注册
 func Register(ctx *gin.Context) {
 	DB := model.Db
 	//获取参数
 	name := ctx.Query("username") //注意字符串要用双引号
-	//telephone := ctx.Query("telephone")
 	password := ctx.Query("password")
-	////数据验证
-	//if len(telephone) != 11 {
-	//	ctx.JSON(http.StatusUnprocessableEntity, gin.H{"code": 422, "msg": "手机号必须为11位"})
-	//	return
-	//}
-	//if len(password) < 6 {
-	//	ctx.JSON(http.StatusUnprocessableEntity, gin.H{"code": 422, "msg": "密码不能少于6位"})
-	//	return
-	//}
 
-	//如果没有传name（名称），就给他一个10位的随机字符串
-	//if len(name) == 0 {
-	//	name = utils.RandomString(10)
-	//}
-	//log.Println(name, telephone, password)
-
-	//判断手机号是否存在
-	//if isUserExist(DB, telephone) {
-	//	ctx.JSON(http.StatusUnprocessableEntity, gin.H{"code": 422, "msg": "用户已经存在"})
-	//}
-	//如果用户不存在，则创建用户
+	//判断用户是否存在，如果用户不存在，则创建用户
 	if isUserExist(DB, name) {
 		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"code": 422, "msg": "用户已经存在"})
 	}
@@ -55,8 +37,8 @@ func Register(ctx *gin.Context) {
 		log.Println(res.Error)
 	}
 
-	//创建用户
-	id := utils.GenerateId(name)
+	//生成User_id，创建用户
+	id := utils.GenUserID()
 	user := model.User{Id: id, Name: name}
 	res = DB.Create(&user)
 	if res.Error != nil {
@@ -65,6 +47,7 @@ func Register(ctx *gin.Context) {
 
 	//生成token并保存到redis
 	token := utils.GenerateToken(name)
+	service.RedisClient.Set(token, name, 3600*24*30)
 	log.Println(token)
 
 	//返回结果
@@ -82,15 +65,7 @@ func Login(ctx *gin.Context) {
 	//获取参数
 	name := ctx.PostForm("username")
 	password := ctx.PostForm("password")
-	//数据验证
-	//if len(telephone) != 11 {
-	//	ctx.JSON(http.StatusUnprocessableEntity, gin.H{"code": 422, "msg": "手机号必须为11位"})
-	//	return
-	//}
-	//if len(password) < 6 {
-	//	ctx.JSON(http.StatusUnprocessableEntity, gin.H{"code": 422, "msg": "密码不能少于6位"})
-	//	return
-	//}
+
 	//判断用户是否存在
 	account := model.Account{}
 	DB.Where("username = ?", name).First(&account)
@@ -105,6 +80,7 @@ func Login(ctx *gin.Context) {
 	}
 	//发送token
 	token := utils.GenerateToken(name)
+	service.RedisClient.Set(token, name, 3600*24*30)
 	//返回结果
 	ctx.JSON(200, gin.H{
 		"status_code": 0,
