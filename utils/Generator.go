@@ -22,7 +22,7 @@ func RandomString(n int) string {
 
 func GenerateToken(username string) string {
 	//使用用户名+时间戳生成token
-	return username + time.Stamp
+	return username + fmt.Sprint(time.Now().Unix())
 }
 
 //var SnowflakeNode snowflake.Node

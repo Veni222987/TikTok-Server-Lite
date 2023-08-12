@@ -4,6 +4,7 @@ import (
 	"github.com/go-redis/redis"
 	"gopkg.in/yaml.v3"
 	"os"
+	"strconv"
 )
 
 type redisInfo struct {
@@ -47,4 +48,13 @@ func IsTokenExist(token string) bool {
 		return false
 	}
 	return true
+}
+
+func GetIdByToken(token string) int64 {
+	result, err := RedisClient.Get(token).Result()
+	if err != nil {
+		panic(err)
+	}
+	result64, _ := strconv.ParseInt(result, 10, 64)
+	return result64
 }

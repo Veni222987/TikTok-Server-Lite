@@ -21,6 +21,7 @@ func Register(ctx *gin.Context) {
 	//判断用户是否存在，如果用户不存在，则创建用户
 	if isUserExist(DB, name) {
 		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"code": 422, "msg": "用户已经存在"})
+		return
 	}
 
 	//对密码进行加密
@@ -47,7 +48,7 @@ func Register(ctx *gin.Context) {
 
 	//生成token并保存到redis
 	token := utils.GenerateToken(name)
-	service.RedisClient.Set(token, name, 3600*24*30)
+	service.RedisClient.Set(token, name, 0)
 	log.Println(token)
 
 	//返回结果
@@ -55,7 +56,7 @@ func Register(ctx *gin.Context) {
 		"status_code": 0,
 		"status_msg":  "注册成功",
 		"user_id":     id,
-		"token":       utils.GenerateToken(name),
+		"token":       token,
 	})
 }
 
@@ -63,12 +64,12 @@ func Register(ctx *gin.Context) {
 func Login(ctx *gin.Context) {
 	DB := model.Db
 	//获取参数
-	name := ctx.PostForm("username")
-	password := ctx.PostForm("password")
+	name := ctx.Query("username")
+	password := ctx.Query("password")
 
 	//判断用户是否存在
 	account := model.Account{}
-	DB.Where("username = ?", name).First(&account)
+	DB.Table("account").Where("username = ?", name).Find(&account)
 	if len(account.Username) == 0 {
 		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"code": 422, "msg": "用户不存在"})
 		return
@@ -80,7 +81,10 @@ func Login(ctx *gin.Context) {
 	}
 	//发送token
 	token := utils.GenerateToken(name)
-	service.RedisClient.Set(token, name, 3600*24*30)
+	err := service.RedisClient.Set(token, name, 0).Err()
+	if err != nil {
+		panic(err)
+	}
 	//返回结果
 	ctx.JSON(200, gin.H{
 		"status_code": 0,

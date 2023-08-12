@@ -2,6 +2,7 @@ package main
 
 import (
 	"DoushengABCD/controller"
+	"DoushengABCD/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,7 +20,7 @@ func InitRouter(r *gin.Engine) {
 	router.GET("/publish/list/", controller.PublishList)
 
 	// extra apis - I
-	router.POST("/favorite/action/")
+	router.POST("/favorite/action/", service.AuthMiddleWare(), controller.Like)
 	router.GET("/favorite/list/")
 	router.POST("/comment/action/")
 	router.GET("/comment/list/")

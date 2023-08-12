@@ -27,8 +27,8 @@ func (*Account) TableName() string {
 }
 
 type Video struct {
-	Id            int    `gorm:"id"`
-	AuthorId      int    `gorm:"author_id"`      // 作者id
+	Id            int64  `gorm:"id"`
+	AuthorId      int64  `gorm:"author_id"`      // 作者id
 	PlayUrl       string `gorm:"play_url"`       // 视频url
 	CoverUrl      string `gorm:"cover_url"`      // 封面url
 	FavoriteCount int    `gorm:"favorite_count"` // 点赞数量
@@ -42,8 +42,8 @@ func (*Video) TableName() string {
 
 type Comment struct {
 	Id         int    `gorm:"id"`
-	UserId     int    `gorm:"user_id"`
-	VideoId    int    `gorm:"video_id"`
+	UserId     int64  `gorm:"user_id"`
+	VideoId    int64  `gorm:"video_id"`
 	Content    string `gorm:"content"`
 	CreateDate string `gorm:"create_date"`
 }
@@ -53,9 +53,9 @@ func (*Comment) TableName() string {
 }
 
 type Like struct {
-	Id      int `gorm:"id"`
-	UserId  int `gorm:"user_id"`
-	VideoId int `gorm:"video_id"`
+	Id      int   `gorm:"id"`
+	UserId  int64 `gorm:"user_id"`
+	VideoId int64 `gorm:"video_id"`
 }
 
 func (*Like) TableName() string {
