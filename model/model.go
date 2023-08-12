@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type User struct {
 	Id              int64  `gorm:"id"`               // 用户id
 	Name            string `gorm:"name"`             // 用户名称
@@ -41,11 +43,11 @@ func (*Video) TableName() string {
 }
 
 type Comment struct {
-	Id         int    `gorm:"id"`
-	UserId     int64  `gorm:"user_id"`
-	VideoId    int64  `gorm:"video_id"`
-	Content    string `gorm:"content"`
-	CreateDate string `gorm:"create_date"`
+	Id         int       `gorm:"id"`
+	UserId     int64     `gorm:"user_id"`
+	VideoId    int64     `gorm:"video_id"`
+	Content    string    `gorm:"content"`
+	CreateDate time.Time `gorm:"create_date"`
 }
 
 func (*Comment) TableName() string {
