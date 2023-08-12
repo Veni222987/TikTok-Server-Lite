@@ -22,6 +22,10 @@ type Account struct {
 	Password string `gorm:"password"`
 }
 
+func (*Account) TableName() string {
+	return "account"
+}
+
 type Video struct {
 	Id            int    `gorm:"id"`
 	AuthorId      int    `gorm:"author_id"`      // 作者id
