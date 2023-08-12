@@ -1,31 +1,20 @@
 package controller
 
 import (
-	"fmt"
-	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"DoushengABCD/utils"
+	_ "fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 type Response struct {
 	StatusCode int32  `json:"status_code"`
 	StatusMsg  string `json:"status_msg,omitempty"`
 }
-
-// 初始化
-func init() {
-	err := Init("2023-08-11", 1)
-	if err != nil {
-		println("初始化失败！", err)
-	}
-}
-
-var node *snowflake.Node
 
 // 投稿接口
 func UploadVideo(c *gin.Context) {
@@ -76,7 +65,7 @@ func UploadVideo(c *gin.Context) {
 	// 获取封面
 	getcover(saveVideoFile, saveCoverFile)
 	// 上传视频到阿里云
-	err = aliyunOSS("videos", finalVideoName, saveVideoFile)
+	err = utils.AliyunOSSUpload("videos", finalVideoName, saveVideoFile)
 	// 错误处理
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
@@ -86,7 +75,7 @@ func UploadVideo(c *gin.Context) {
 		return
 	}
 	// 上传封面到阿里云
-	err = aliyunOSS("covers", finalCoverName, saveCoverFile)
+	err = utils.AliyunOSSUpload("covers", finalCoverName, saveCoverFile)
 	// 错误处理
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
@@ -128,61 +117,6 @@ func PublishList(c *gin.Context) {
 	println(user_id)
 }
 
-// 雪花算法生成视频id
-// 初始化雪花算法
-func Init(startTime string, machineID int64) (err error) {
-	var st time.Time
-	st, err = time.Parse("2006-01-02", startTime)
-	if err != nil {
-		return err // 返回错误信息
-	}
-	snowflake.Epoch = st.UnixNano() / 1e6
-	node, err = snowflake.NewNode(machineID)
-	if err != nil {
-		fmt.Println(err)
-		return err // 返回错误信息
-	}
-	return nil // 返回 nil 表示初始化成功
-}
-
-// 生成 64 位的雪花 ID
-func GenID() int64 {
-	return node.Generate().Int64()
-}
-
-// 存储视频到阿里云oss
-func aliyunOSS(t string, fileName string, localFilePath string) error {
-	// yourBucketName填写存储空间名称。
-	bucketName := "abcd-dousheng"
-	// yourObjectName填写Object完整路径，完整路径不包含Bucket名称。
-	var objectName string
-	switch t {
-	case "videos":
-		objectName = "videos/" + fileName
-	case "covers":
-		objectName = "covers/" + fileName
-	}
-	// yourLocalFileName填写本地文件的完整路径或相对路径。
-	localFileName := localFilePath
-	// 创建OSSClient实例。
-	// yourEndpoint填写Bucket对应的Endpoint，以华东1（杭州）为例，填写为https://oss-cn-hangzhou.aliyuncs.com。其它Region请按实际情况填写。
-	client, err := oss.New("https://oss-cn-guangzhou.aliyuncs.com", "LTAI5t9K833uebsoQvSDZxDH", "VO2AUub801jTf6KFczQZoRf4CZhJY0")
-	if err != nil {
-		return err
-	}
-	// 获取存储空间。
-	bucket, err := client.Bucket(bucketName)
-	if err != nil {
-		return err
-	}
-	// 上传文件。
-	err = bucket.PutObjectFromFile(objectName, localFileName)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // 获取封面
 func getcover(videoPath string, coverPath string) error {
 	// 执行带环境变量的 ffmpeg 命令
@@ -191,6 +125,5 @@ func getcover(videoPath string, coverPath string) error {
 	if err != nil {
 		return err
 	}
+	return nil
 }
-
-// 封装视频信息
