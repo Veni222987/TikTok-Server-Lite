@@ -4,6 +4,7 @@ import (
 	"DoushengABCD/model"
 	"DoushengABCD/service"
 	"DoushengABCD/utils"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -101,7 +102,7 @@ func Login(ctx *gin.Context) {
 	})
 }
 
-// 判断手机号是否存在
+// 判断用户名是否存在
 func isUserExist(db *gorm.DB, username string) bool {
 	var account model.Account
 	model.Db.Select("username").Where("username =?", username).First(&account)
@@ -109,4 +110,31 @@ func isUserExist(db *gorm.DB, username string) bool {
 		return true
 	}
 	return false
+}
+
+func GetUserInfo(ctx *gin.Context) {
+	//获取参数
+	userID := ctx.Query("user_id")
+	fmt.Println("接收id", userID)
+	//token := ctx.Query("token")
+	//根据userID查找数据库
+	var user model.User
+	if res := model.Db.Where("id=?", userID).Find(&user); res.Error != nil {
+		panic(res.Error)
+	}
+
+	type resUser struct {
+		Id            int
+		Name          string
+		FollowCount   int
+		FollowerCount int
+		IsFollow      bool
+	}
+
+	user.IsFollow = false
+	ctx.JSON(0, gin.H{
+		"status_code": 0,
+		"status_msg":  "success",
+		"user":        user,
+	})
 }

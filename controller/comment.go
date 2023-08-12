@@ -86,7 +86,7 @@ func GetCommentList(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, gin.H{
-		"status_code": "0",
+		"status_code": "0*",
 		"status_msg":  "成功",
 		"video_list":  resCommentList,
 	})
