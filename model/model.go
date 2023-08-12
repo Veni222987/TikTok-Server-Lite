@@ -17,6 +17,11 @@ func (*User) TableName() string {
 	return "user"
 }
 
+type Account struct {
+	Username string `gorm:"username"`
+	Password string `gorm:"password"`
+}
+
 type Video struct {
 	Id            int    `gorm:"id"`
 	AuthorId      int    `gorm:"author_id"`      // 作者id
