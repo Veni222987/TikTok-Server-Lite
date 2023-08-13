@@ -25,21 +25,24 @@ type Response struct {
 // UploadVideo 投稿接口
 func UploadVideo(c *gin.Context) {
 	video := model.Video{FavoriteCount: 0, CommentCount: 0}
-	// 获取名为 "token" 的值，并将其赋值给变量 token。
+	// 获取token
 	token := c.PostForm("token")
-	// 获取用户id
-	uid, err := service.RedisClient.Get(token).Result()
+	// 使用 Redis 获取userName
+	userName, err := service.RedisClient.Get(token).Result()
 	if err == redis.Nil {
 		fmt.Println("key不存在")
 	} else if err != nil {
-		panic(err)
+		panic("Redistribution，获取userName失败  " + err.Error())
 	} else {
-		video.AuthorId, err = strconv.ParseInt(uid, 10, 64)
 		if err != nil {
-			c.JSON(1, "用户id获取失败")
+			c.JSON(1, "userName获取失败")
 		}
 	}
-	// 获取名为 "title" 的值。
+	// 获取userID
+	var user model.User
+	model.Db.Table("user").Where("name = ?", userName).First(&user)
+	video.AuthorId = user.Id
+	// 获取名为 "title"
 	video.Title = c.PostForm("title")
 	var id int64
 	for {
@@ -63,16 +66,16 @@ func UploadVideo(c *gin.Context) {
 		})
 		return
 	}
-	// 获取文件名例：bear.mp4
+	// 获取文件名，例：bear.mp4
 	videoName := filepath.Base(data.Filename)
-	finalName := fmt.Sprintf("%v_%s", uid, videoName)
+	finalName := fmt.Sprintf("%v_%s", user.Id, videoName)
 	// 文件名切分
 	parts := strings.Split(videoName, ".")
 	// 文件名转换
 	finalVideoName := strconv.FormatInt(id, 10) + "." + parts[1]
 	finalCoverName := strconv.FormatInt(id, 10) + ".jpg"
-	video.PlayUrl = "https://oss-cn-guangzhou.aliyuncs.com/videos/" + finalVideoName
-	video.CoverUrl = "https://oss-cn-guangzhou.aliyuncs.com/covers/" + finalCoverName
+	video.PlayUrl = "https://abcd-dousheng.oss-cn-guangzhou.aliyuncs.com/videos/" + finalVideoName
+	video.CoverUrl = "https://abcd-dousheng.oss-cn-guangzhou.aliyuncs.com/covers/" + finalCoverName
 	// 生成视频、封面相对路径
 	saveVideoFile := "./public/" + finalVideoName
 	saveCoverFile := "./public/" + finalCoverName
@@ -142,7 +145,7 @@ func UploadVideo(c *gin.Context) {
 
 func PublishList(c *gin.Context) {
 	// 获取参数
-	user_id := c.Query("user_id")
+	userID := c.Query("user_id")
 	// 查询数据库封装数据
 	// 临时结构体
 	// user
@@ -174,7 +177,7 @@ func PublishList(c *gin.Context) {
 	}
 	var videos []video
 	var user_t user
-	model.Db.Table("video").Where("author_id = ?", user_id).First(&videos)
+	model.Db.Table("video").Where("author_id = ?", userID).Find(&videos)
 	if len(videos) == 0 {
 		c.JSON(http.StatusOK, gin.H{
 			"status_code": 0,
@@ -183,7 +186,7 @@ func PublishList(c *gin.Context) {
 		})
 	}
 	for index, video_t := range videos {
-		model.Db.Table("user").Find(&user_t, video_t.AuthorId)
+		model.Db.Table("user").Where("id = ?", video_t.AuthorId).Find(&user_t)
 		videos[index].Author = user_t
 		// 数据库查询是否关注
 

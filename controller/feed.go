@@ -27,14 +27,14 @@ func Feed(c *gin.Context) {
 		}
 	}
 	if token != "" {
-		// 获取用户id
-		uid, err := service.RedisClient.Get(token).Result()
+		// 获取userName
+		userName, err := service.RedisClient.Get(token).Result()
 		if err == redis.Nil {
 			fmt.Println("key不存在")
 		} else if err != nil {
-			panic(err)
+			panic("获取UserName失败 " + err.Error())
 		} else {
-			fmt.Println("value:", uid)
+			fmt.Println("value:", userName)
 		}
 	}
 	// 临时结构体
@@ -54,7 +54,7 @@ func Feed(c *gin.Context) {
 	}
 	// video
 	type video struct {
-		AuthorId      int64  `json:"-"`
+		AuthorId      int64  `json:"-" gorm:"author_id"`
 		Author        user   `json:"author"`                     // 视频作者信息
 		CommentCount  int64  `json:"comment_count"`              // 视频的评论总数
 		CoverURL      string `json:"cover_url" gorm:"cover_url"` // 视频封面地址
@@ -70,7 +70,7 @@ func Feed(c *gin.Context) {
 	// 查询数据库封装数据
 	model.Db.Table("video").Order("time DESC").Limit(30).Where("time <= ?", currentTime).Find(&videos)
 	for index, video_t := range videos {
-		model.Db.Table("user").Find(&user_t, video_t.AuthorId)
+		model.Db.Table("user").Where("id = ?", video_t.AuthorId).Find(&user_t)
 		videos[index].Author = user_t
 		// 数据库查询是否关注
 
@@ -84,15 +84,16 @@ func Feed(c *gin.Context) {
 	if len(videos) == 0 {
 		c.JSON(http.StatusOK, gin.H{
 			"status_code": 0,
-			"status_msg":  "成功",
-			"next_time":   10000,
+			"status_msg":  "success",
+			"next_time":   100000000000000000,
 			"video_list":  nil,
 		})
+		return
 	}
 	// 返回数据
 	c.JSON(http.StatusOK, gin.H{
 		"status_code": 0,
-		"status_msg":  "成功",
+		"status_msg":  "success",
 		"next_time":   videos[len(videos)-1].Time,
 		"video_list":  videos,
 	})
