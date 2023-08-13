@@ -1,17 +1,17 @@
 database:
-  driver: mysql
-  host: 47.113.149.158
-  port: 3306
-  username: veni
-  password: asdfghjkl
-  database: dousheng
+  driver: 
+  host: 
+  port: 
+  username: 
+  password: 
+  database: 
 
 redis:
-  addr: "47.113.149.158:6379"
+  addr: 
   password:
-  DB: 0
+  DB: 
 
 OSS:
-  endPoint: "https://oss-cn-guangzhou.aliyuncs.com"
-  accessKey: "LTAI5t9K833uebsoQvSDZxDH"
-  accessSecret: "VO2AUub801jTf6KFczQZoRf4CZhJY0"
+  endPoint: 
+  accessKey: 
+  accessSecret: 
