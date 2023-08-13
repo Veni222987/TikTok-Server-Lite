@@ -207,7 +207,7 @@ func PublishList(c *gin.Context) {
 // 获取封面
 func getcover(videoPath string, coverPath string) error {
 	// 执行带环境变量的 ffmpeg 命令
-	cmd := exec.Command("D:\\install\\ffmpeg-6.0-essentials_build\\bin\\ffmpeg.exe", "-i", videoPath, "-ss", "00:00:00.000", "-vframes", "1", coverPath)
+	cmd := exec.Command("./ffmpeg/bin/ffmpeg.exe", "-i", videoPath, "-ss", "00:00:00.000", "-vframes", "1", coverPath)
 	err := cmd.Run()
 	if err != nil {
 		return err
