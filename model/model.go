@@ -37,6 +37,7 @@ type Video struct {
 	FavoriteCount int    `gorm:"favorite_count"` // 点赞数量
 	CommentCount  int    `gorm:"comment_count"`  // 评论数量
 	Title         string `gorm:"title"`          // 视频标题
+	Time          int64  `gorm:"time"`           // 时间戳
 }
 
 func (*Video) TableName() string {

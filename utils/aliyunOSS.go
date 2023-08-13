@@ -7,6 +7,12 @@ import (
 	"os"
 )
 
+type OSSConfig struct {
+	Endpoint     string `yaml:"endPoint"`
+	AccessKey    string `yaml:"accessKey"`
+	AccessSecret string `yaml:"accessSecret"`
+}
+
 /*
 上传文件到阿里云OOS,访问路径：“https://abcd-dousheng.oss-cn-guangzhou.aliyuncs.com/文件类型/文件名”
 t: 上传文件类型（“videos”:视频，“covers”：视频封面，“avatar”：用户封面）
@@ -14,15 +20,9 @@ fileName：文件名（例如xxx.mp4）
 localFilePath:本地文件路径（相对根目录路径或绝对路径）
 return：报错
 */
-type OSSConfig struct {
-	Endpoint     string `yaml:"endpoint"`
-	AccessKey    string `yaml:"accessKey"`
-	AccessSecret string `yaml:"accessSecret"`
-}
-
 func AliyunOSSUpload(t string, fileName string, localFilePath string) error {
 	var ossConfig struct {
-		oss OSSConfig `yaml:"OSS"`
+		OSS OSSConfig `yaml:"OSS"`
 	}
 	//读取阿里云OSS配置
 	configFile, err := os.ReadFile("config.yaml")
@@ -33,7 +33,6 @@ func AliyunOSSUpload(t string, fileName string, localFilePath string) error {
 	if err != nil {
 		panic(err)
 	}
-
 	// yourBucketName填写存储空间名称。
 	bucketName := "abcd-dousheng"
 	// yourObjectName填写Object完整路径，完整路径不包含Bucket名称。
@@ -48,11 +47,9 @@ func AliyunOSSUpload(t string, fileName string, localFilePath string) error {
 	default:
 		return errors.New("第一个参数不存在！")
 	}
-	// yourLocalFileName填写本地文件的完整路径或相对路径。
-	localFileName := localFilePath
 	// 创建OSSClient实例。
 	// yourEndpoint填写Bucket对应的Endpoint
-	client, err := oss.New(ossConfig.oss.Endpoint, ossConfig.oss.AccessKey, ossConfig.oss.AccessSecret)
+	client, err := oss.New(ossConfig.OSS.Endpoint, ossConfig.OSS.AccessKey, ossConfig.OSS.AccessSecret)
 	//fmt.Printf("#+v", ossConfig)
 	if err != nil {
 		return err
@@ -63,8 +60,9 @@ func AliyunOSSUpload(t string, fileName string, localFilePath string) error {
 		return err
 	}
 	// 上传文件。
-	err = bucket.PutObjectFromFile(objectName, localFileName)
+	err = bucket.PutObjectFromFile(objectName, localFilePath)
 	if err != nil {
+		println(err.Error())
 		return err
 	}
 	return nil

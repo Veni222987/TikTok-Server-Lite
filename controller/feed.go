@@ -63,7 +63,7 @@ func Feed(c *gin.Context) {
 		IsFavorite    bool   `json:"is_favorite"`                // true-已点赞，false-未点赞
 		PlayURL       string `json:"play_url" gorm:"play_url"`   // 视频播放地址
 		Title         string `json:"title"`                      // 视频标题
-		Time          int64  `json:"time"`                       //视频发布时间
+		Time          int64  `json:"-"`                          //视频发布时间
 	}
 	var videos []video
 	var user_t user

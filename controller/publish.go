@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Response struct {
@@ -24,7 +25,7 @@ type Response struct {
 // UploadVideo 投稿接口
 func UploadVideo(c *gin.Context) {
 	video := model.Video{FavoriteCount: 0, CommentCount: 0}
-	// 从请求的表单中获取名为 "token" 的值，并将其赋值给变量 token。
+	// 获取名为 "token" 的值，并将其赋值给变量 token。
 	token := c.PostForm("token")
 	// 获取用户id
 	uid, err := service.RedisClient.Get(token).Result()
@@ -38,16 +39,17 @@ func UploadVideo(c *gin.Context) {
 			c.JSON(1, "用户id获取失败")
 		}
 	}
-	// 从请求的表单中获取名为 "title" 的值。
+	// 获取名为 "title" 的值。
 	video.Title = c.PostForm("title")
 	var id int64
 	for {
 		// 生成视频ID
-		id := utils.GenVideoID()
+		id = utils.GenVideoID()
 		// 检验唯一性数据库查查询操作
 		var count int64
 		model.Db.Table("video").Where("id = ?", id).Count(&count)
 		if count == 0 {
+			video.Id = id
 			break
 		}
 	}
@@ -63,16 +65,17 @@ func UploadVideo(c *gin.Context) {
 	}
 	// 获取文件名例：bear.mp4
 	videoName := filepath.Base(data.Filename)
+	finalName := fmt.Sprintf("%v_%s", uid, videoName)
 	// 文件名切分
 	parts := strings.Split(videoName, ".")
 	// 文件名转换
-	finalVideoName := string(id) + parts[1]
-	finalCoverName := string(id) + ".jpg"
+	finalVideoName := strconv.FormatInt(id, 10) + "." + parts[1]
+	finalCoverName := strconv.FormatInt(id, 10) + ".jpg"
 	video.PlayUrl = "https://oss-cn-guangzhou.aliyuncs.com/videos/" + finalVideoName
 	video.CoverUrl = "https://oss-cn-guangzhou.aliyuncs.com/covers/" + finalCoverName
 	// 生成视频、封面相对路径
-	saveVideoFile := filepath.Join("./public/", finalVideoName)
-	saveCoverFile := filepath.Join("./public", finalCoverName)
+	saveVideoFile := "./public/" + finalVideoName
+	saveCoverFile := "./public/" + finalCoverName
 	// 保存文件
 	if err := c.SaveUploadedFile(data, saveVideoFile); err != nil {
 		c.JSON(http.StatusOK, Response{
@@ -120,17 +123,20 @@ func UploadVideo(c *gin.Context) {
 		}
 	}()
 	// 写入数据库
+	video.Time = time.Now().Unix()
+	fmt.Println(video)
 	result := model.Db.Table("video").Create(&video)
 	if result.Error != nil {
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 2,
 			StatusMsg:  "数据库上传失败",
 		})
+		return
 	}
 	// 成功返回响应
 	c.JSON(http.StatusOK, Response{
 		StatusCode: 0,
-		StatusMsg:  " uploaded successfully",
+		StatusMsg:  finalName + " uploaded successfully",
 	})
 }
 
@@ -164,7 +170,7 @@ func PublishList(c *gin.Context) {
 		IsFavorite    bool   `json:"is_favorite"`                // true-已点赞，false-未点赞
 		PlayURL       string `json:"play_url" gorm:"play_url"`   // 视频播放地址
 		Title         string `json:"title"`                      // 视频标题
-		Time          int64  `json:"time"`                       //视频发布时间
+		Time          int64  `json:"-"`                          //视频发布时间
 	}
 	var videos []video
 	var user_t user
