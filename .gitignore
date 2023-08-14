@@ -9,4 +9,5 @@ transfer/
 config.yaml
 utils/ffmpeg.exe
 
-*.bat
+/*.bat
+*.rar

@@ -66,10 +66,12 @@ func Feed(c *gin.Context) {
 		Time          int64  `json:"-"`                          //视频发布时间
 	}
 	var videos []video
-	var user_t user
+
 	// 查询数据库封装数据
 	model.Db.Table("video").Order("time DESC").Limit(30).Where("time <= ?", currentTime).Find(&videos)
 	for index, video_t := range videos {
+		fmt.Println(video_t.AuthorId)
+		var user_t user
 		model.Db.Table("user").Where("id = ?", video_t.AuthorId).Find(&user_t)
 		videos[index].Author = user_t
 		// 数据库查询是否关注
