@@ -1,12 +1,12 @@
 #IDE文件
-/.idea
+.idea/
 
 #可执行文件
-/*.exe
+*.exe
 
 #transfer
-/transfer
-#/config.yaml
-/utils/ffmpeg.exe
+transfer/
+config.yaml
+utils/ffmpeg.exe
 
 *.bat
