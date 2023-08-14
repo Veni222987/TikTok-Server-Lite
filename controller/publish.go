@@ -200,7 +200,7 @@ func PublishList(c *gin.Context) {
 		Time          int64  `json:"-"`                          //视频发布时间
 	}
 	var videos []video
-	var user_t user
+	var userT user
 	model.Db.Table("video").Where("author_id = ?", userID).Find(&videos)
 	if len(videos) == 0 {
 		c.JSON(http.StatusOK, gin.H{
@@ -210,14 +210,14 @@ func PublishList(c *gin.Context) {
 		})
 		return
 	}
-	for index, video_t := range videos {
-		model.Db.Table("user").Where("id = ?", video_t.AuthorId).First(&user_t)
-		videos[index].Author = user_t
+	for index, videoT := range videos {
+		model.Db.Table("user").Where("id = ?", videoT.AuthorId).First(&userT)
+		videos[index].Author = userT
 		// 数据库查询是否关注
 
 		// 数据库查询是否点赞
 		var count int64
-		model.Db.Table("like").Where("user_id = ? AND video_id = ?", user_t.ID, videos[index].ID).Count(&count)
+		model.Db.Table("like").Where("user_id = ? AND video_id = ?", userT.ID, videos[index].ID).Count(&count)
 		if count != 0 {
 			videos[index].IsFavorite = true
 		}

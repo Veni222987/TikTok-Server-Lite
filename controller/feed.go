@@ -69,16 +69,16 @@ func Feed(c *gin.Context) {
 
 	// 查询数据库封装数据
 	model.Db.Table("video").Order("time DESC").Limit(30).Where("time <= ?", currentTime).Find(&videos)
-	for index, video_t := range videos {
-		fmt.Println(video_t.AuthorId)
-		var user_t user
-		model.Db.Table("user").Where("id = ?", video_t.AuthorId).Find(&user_t)
-		videos[index].Author = user_t
+	for index, videoT := range videos {
+		fmt.Println(videoT.AuthorId)
+		var userT user
+		model.Db.Table("user").Where("id = ?", videoT.AuthorId).First(&userT)
+		videos[index].Author = userT
 		// 数据库查询是否关注
 
 		// 数据库查询是否点赞
 		var count int64
-		model.Db.Table("like").Where("user_id = ? AND video_id = ?", user_t.ID, videos[index].ID).Count(&count)
+		model.Db.Table("like").Where("user_id = ? AND video_id = ?", userT.ID, videos[index].ID).Count(&count)
 		if count != 0 {
 			videos[index].IsFavorite = true
 		}
