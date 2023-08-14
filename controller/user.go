@@ -42,14 +42,14 @@ func Register(ctx *gin.Context) {
 	//生成User_id，创建用户
 	id := utils.GenUserID()
 	user := model.User{Id: id, Name: name}
-	res = DB.Create(&user)
+	res = DB.Omit("avatar", "background_image", "signature").Create(&user)
 	if res.Error != nil {
 		log.Println(res.Error)
 	}
 
-	//生成token并保存到redis
+	//生成token并保存到redis，过期时间为1天
 	token := utils.GenerateToken(name)
-	service.RedisClient.Set(token, name, 0)
+	service.RedisClient.Set(token, name, 86400000000000)
 	log.Println(token)
 
 	//返回结果
@@ -80,9 +80,9 @@ func Login(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "密码错误"})
 		return
 	}
-	//发送token
+	//发送token，过期时间为1天
 	token := utils.GenerateToken(name)
-	err := service.RedisClient.Set(token, name, 0).Err()
+	err := service.RedisClient.Set(token, name, 86400000000000).Err()
 	if err != nil {
 		panic(err)
 	}
@@ -131,7 +131,6 @@ func GetUserInfo(ctx *gin.Context) {
 		IsFollow      bool
 	}
 
-	user.IsFollow = false
 	ctx.JSON(0, gin.H{
 		"status_code": 0,
 		"status_msg":  "success",

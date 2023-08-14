@@ -13,7 +13,6 @@ type User struct {
 	TotalFavorited  int    `gorm:"total_favorited"`  // 获赞数量
 	WorkCount       int    `gorm:"work_count"`       // 作品数
 	FavoriteCount   int    `gorm:"favorite_count"`   // 喜欢数
-	IsFollow        bool
 }
 
 func (*User) TableName() string {

@@ -1,5 +1,5 @@
 #IDE文件
-.idea
+.idea/
 
 #可执行文件
 *.exe
@@ -8,3 +8,9 @@
 config.yaml
 
 *.mp4
+#transfer
+transfer/
+utils/ffmpeg.exe
+
+/*.bat
+*.rar

@@ -6,8 +6,6 @@ import (
 	"DoushengABCD/utils"
 	"fmt"
 	_ "fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
 	"net/http"
 	"os"
 	"os/exec"
@@ -15,6 +13,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 )
 
 type Response struct {
@@ -231,7 +232,7 @@ func PublishList(c *gin.Context) {
 // 获取封面
 func getcover(videoPath string, coverPath string) error {
 	// 执行带环境变量的 ffmpeg 命令
-	cmd := exec.Command("./ffmpeg/bin/ffmpeg.exe", "-i", videoPath, "-ss", "00:00:00.000", "-vframes", "1", coverPath)
+	cmd := exec.Command("./utils/ffmpeg.exe", "-i", videoPath, "-ss", "00:00:00.000", "-vframes", "1", coverPath)
 	err := cmd.Run()
 	if err != nil {
 		return err
