@@ -3,16 +3,16 @@ package model
 import "time"
 
 type User struct {
-	Id              int64  `gorm:"id"`               // 用户id
-	Name            string `gorm:"name"`             // 用户名称
-	FollowCount     int    `gorm:"follow_count"`     // 关注总数
-	FollowerCount   int    `gorm:"follower_count"`   // 粉丝总数
-	Avatar          string `gorm:"avatar"`           // 用户头像
-	BackgroundImage string `gorm:"background_image"` // 用户个人页顶部大图
-	Signature       string `gorm:"signature"`        // 个人简介
-	TotalFavorited  int    `gorm:"total_favorited"`  // 获赞数量
-	WorkCount       int    `gorm:"work_count"`       // 作品数
-	FavoriteCount   int    `gorm:"favorite_count"`   // 喜欢数
+	Id              int64  `gorm:"id" json:"id"`                             // 用户id
+	Name            string `gorm:"name" json:"name"`                         // 用户名称
+	FollowCount     int    `gorm:"follow_count" json:"follow_count"`         // 关注总数
+	FollowerCount   int    `gorm:"follower_count" json:"follower_count"`     // 粉丝总数
+	Avatar          string `gorm:"avatar" json:"avatar"`                     // 用户头像
+	BackgroundImage string `gorm:"background_image" json:"background_image"` // 用户个人页顶部大图
+	Signature       string `gorm:"signature" json:"signature"`               // 个人简介
+	TotalFavorited  int    `gorm:"total_favorited" json:"total_favorited"`   // 获赞数量
+	WorkCount       int    `gorm:"work_count" json:"work_count"`             // 作品数
+	FavoriteCount   int    `gorm:"favorite_count" json:"favorite_count"`     // 喜欢数
 }
 
 func (*User) TableName() string {

@@ -3,6 +3,7 @@ package controller
 import (
 	"DoushengABCD/model"
 	"DoushengABCD/service"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"strconv"
@@ -20,16 +21,47 @@ func Like(ctx *gin.Context) {
 	liekLog := model.Like{UserId: uid64, VideoId: vid64}
 	if action_type == "1" {
 		//点赞
+		//封装成为事务，保证数据库的一致性
+		tx := model.Db.Begin()
 		//更新like
-		model.Db.Create(&liekLog)
+		res := tx.Create(&liekLog)
+		fmt.Println("点赞信息", liekLog)
+		if res.Error != nil {
+			panic(res.Error)
+			tx.Rollback()
+			return
+		}
 		//该视频的喜欢数++
-		model.Db.Where("id=?", vid64).Update("favorite_count", gorm.Expr("favorite_count+1"))
+		res = tx.Table("video").Where("id=?", vid64).Update("favorite_count", gorm.Expr("favorite_count+1"))
+		if res.Error != nil {
+			panic(res.Error)
+			tx.Rollback()
+			return
+		}
 		//视频作者的喜欢数++
-		var authorUid int64
-		model.Db.Table("video").Select("author_id").Where("id=?", vid64).First(&authorUid)
-		model.Db.Where("id=?", authorUid).Update("favorite_count", gorm.Expr("favorite_count+1"))
+		var authorUid struct {
+			AuthorID int64 `gorm:"author_id"`
+		}
+		res = tx.Table("video").Select("author_id").Where("id=?", vid64).First(&authorUid)
+		if res.Error != nil {
+			panic(res.Error)
+			tx.Rollback()
+			return
+		}
+		res = tx.Table("user").Where("id=?", authorUid.AuthorID).Update("favorite_count", gorm.Expr("favorite_count+1"))
+		if res.Error != nil {
+			panic(res.Error)
+			tx.Rollback()
+			return
+		}
 		//当前用户的喜欢数++
-		model.Db.Where("id=?", uid64).Update("total_favorited", gorm.Expr("total_favorited+1"))
+		res = tx.Table("user").Where("id=?", uid64).Update("total_favorited", gorm.Expr("total_favorited+1"))
+		if res.Error != nil {
+			panic(res.Error)
+			tx.Rollback()
+			return
+		}
+		tx.Commit()
 		ctx.JSON(200, gin.H{
 			"status_code": 200,
 			"status_msg":  "点赞成功",
@@ -37,15 +69,43 @@ func Like(ctx *gin.Context) {
 	} else if action_type == "2" {
 		//取消点赞
 		//更新like
-		model.Db.Where("video_id=?", video_id).Delete(&liekLog)
+		tx := model.Db.Begin()
+		res := tx.Where("video_id=?", video_id).Delete(&liekLog)
+		if res.Error != nil {
+			panic(res.Error)
+			tx.Rollback()
+			return
+		}
 		//该视频的喜欢数--
-		model.Db.Where("id=?", vid64).Update("favorite_count", gorm.Expr("favorite_count-1"))
+		res = tx.Table("video").Where("id=?", vid64).Update("favorite_count", gorm.Expr("favorite_count-1"))
+		if res.Error != nil {
+			panic(res.Error)
+			tx.Rollback()
+			return
+		}
 		//视频作者的喜欢数--
-		var authorUid int64
-		model.Db.Table("video").Select("author_id").Where("id=?", vid64).First(&authorUid)
-		model.Db.Where("id=?", authorUid).Update("favorite_count", gorm.Expr("favorite_count-1"))
+		var authorUid struct {
+			AuthorId int64 `gorm:"author_id"`
+		}
+		res = tx.Table("video").Select("author_id").Where("id=?", vid64).First(&authorUid)
+		if res.Error != nil {
+			panic(res.Error)
+			tx.Rollback()
+			return
+		}
+		res = tx.Table("user").Where("id=?", authorUid.AuthorId).Update("favorite_count", gorm.Expr("favorite_count-1"))
+		if res.Error != nil {
+			panic(res.Error)
+			tx.Rollback()
+			return
+		}
 		//当前用户的喜欢数--
-		model.Db.Where("id=?", uid64).Update("total_favorited", gorm.Expr("total_favorited-1"))
+		res = tx.Table("user").Where("id=?", uid64).Update("total_favorited", gorm.Expr("total_favorited-1"))
+		if res.Error != nil {
+			panic(res.Error)
+			tx.Rollback()
+			return
+		}
 		ctx.JSON(200, gin.H{
 			"status_code": 200,
 			"status_msg":  "取消点赞成功",

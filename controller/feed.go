@@ -5,7 +5,7 @@ import (
 	"DoushengABCD/service"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
@@ -28,13 +28,9 @@ func Feed(c *gin.Context) {
 	}
 	if token != "" {
 		// 获取userName
-		userName, err := service.RedisClient.Get(token).Result()
-		if err == redis.Nil {
+		userName := service.GetNameByToken(token)
+		if userName == "" {
 			fmt.Println("key不存在")
-		} else if err != nil {
-			panic("获取UserName失败 " + err.Error())
-		} else {
-			fmt.Println("value:", userName)
 		}
 	}
 	// 临时结构体
@@ -87,7 +83,7 @@ func Feed(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status_code": 0,
 			"status_msg":  "success",
-			"next_time":   100000000000000000,
+			"next_time":   math.MaxInt,
 			"video_list":  nil,
 		})
 		return

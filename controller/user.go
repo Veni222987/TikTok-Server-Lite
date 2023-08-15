@@ -4,6 +4,7 @@ import (
 	"DoushengABCD/model"
 	"DoushengABCD/service"
 	"DoushengABCD/utils"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -48,9 +49,14 @@ func Register(ctx *gin.Context) {
 	}
 
 	//生成token并保存到redis，过期时间为1天
-	token := utils.GenerateToken(name)
-	service.RedisClient.Set(token, name, 86400000000000)
-	log.Println(token)
+	token := utils.GenerateToken(name, id)
+	userInfo := map[string]interface{}{
+		"id":   id,
+		"name": name,
+	}
+	userInfoJson, _ := json.Marshal(userInfo)
+	service.RedisClient.Set(token, userInfoJson, 86400000000000)
+	//log.Println(token)
 
 	//返回结果
 	ctx.JSON(200, gin.H{
@@ -80,12 +86,7 @@ func Login(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "密码错误"})
 		return
 	}
-	//发送token，过期时间为1天
-	token := utils.GenerateToken(name)
-	err := service.RedisClient.Set(token, name, 86400000000000).Err()
-	if err != nil {
-		panic(err)
-	}
+
 	//获取user_id
 	var uid64 int64
 
@@ -93,6 +94,24 @@ func Login(ctx *gin.Context) {
 	if res.Error != nil {
 		panic(res.Error)
 	}
+	//发送token，过期时间为1天
+	token := utils.GenerateToken(name, uid64)
+
+	type uInfoStruct struct {
+		ID   int64  `gorm:"id" json:"id"`
+		Name string `gorm:"name" json:"name"`
+	}
+	var uInfo uInfoStruct
+
+	model.Db.Table("user").Select("id,name").Where("name=?", name).First(&uInfo)
+	//序列化
+	userInfoJson, err := json.Marshal(uInfo)
+
+	err = service.RedisClient.Set(token, userInfoJson, 86400000000000).Err()
+	if err != nil {
+		panic(err)
+	}
+
 	//返回结果
 	ctx.JSON(200, gin.H{
 		"status_code": 0,

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	_ "fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
 	"net/http"
 	"os"
 	"os/exec"
@@ -27,21 +26,15 @@ func UploadVideo(c *gin.Context) {
 	video := model.Video{FavoriteCount: 0, CommentCount: 0}
 	// 获取token
 	token := c.PostForm("token")
-	// 使用 Redis 获取userName
-	userName, err := service.RedisClient.Get(token).Result()
-	if err == redis.Nil {
-		fmt.Println("key不存在")
-	} else if err != nil {
-		panic("Redistribution，获取userName失败  " + err.Error())
-	} else {
-		if err != nil {
-			c.JSON(1, "userName获取失败")
-		}
+
+	video.AuthorId = service.GetIdByToken(token)
+	if video.AuthorId == 0 {
+		c.JSON(http.StatusInternalServerError, Response{
+			StatusCode: 1,
+			StatusMsg:  "无法查询id",
+		})
+		return
 	}
-	// 获取userID
-	var user model.User
-	model.Db.Table("user").Where("name = ?", userName).First(&user)
-	video.AuthorId = user.Id
 	// 获取名为 "title"
 	video.Title = c.PostForm("title")
 	var id int64
@@ -68,7 +61,7 @@ func UploadVideo(c *gin.Context) {
 	}
 	// 获取文件名，例：bear.mp4
 	videoName := filepath.Base(data.Filename)
-	finalName := fmt.Sprintf("%v_%s", user.Id, videoName)
+	finalName := fmt.Sprintf("%v_%s", video.AuthorId, videoName)
 	// 文件名切分
 	parts := strings.Split(videoName, ".")
 	// 文件名转换
