@@ -43,7 +43,14 @@ func UploadVideo(c *gin.Context) {
 		id = utils.GenVideoID()
 		// 检验唯一性数据库查查询操作
 		var count int64
-		model.Db.Table("video").Where("id = ?", id).Count(&count)
+		res := model.Db.Table("video").Where("id = ?", id).Count(&count)
+		if res.Error != nil{
+			c.JSON(http.StatusInternalServerError, Response{
+				StatusCode: 1,
+				StatusMsg:  "数据库查询失败",
+			})
+			return
+		}
 		if count == 0 {
 			video.Id = id
 			break
@@ -185,8 +192,13 @@ func PublishList(c *gin.Context) {
 		Time          int64  `json:"-"`                          //视频发布时间
 	}
 	var videos []video
-	var userT user
-	model.Db.Table("video").Where("author_id = ?", userID).Find(&videos)
+	if res := model.Db.Table("video").Where("author_id = ?", userID).Find(&videos);res.Error != nil{
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status_code": 0,
+			"status_msg":  "fail",
+			"video_list":  nil,
+		})
+	}
 	if len(videos) == 0 {
 		c.JSON(http.StatusOK, gin.H{
 			"status_code": 0,
@@ -196,8 +208,12 @@ func PublishList(c *gin.Context) {
 		return
 	}
 	for index, videoT := range videos {
-		model.Db.Table("user").Where("id = ?", videoT.AuthorId).First(&userT)
+		var userT user
+		res := model.Db.Table("user").Where("id = ?", videoT.AuthorId).First(&userT)
 		videos[index].Author = userT
+		if res.Error != nil{
+			continue
+		}
 		// 数据库查询是否关注
 
 		// 数据库查询是否点赞
