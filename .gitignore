@@ -4,9 +4,12 @@
 #可执行文件
 *.exe
 
+#云资源配置文件
+config.yaml
+
+*.mp4
 #transfer
 transfer/
-config.yaml
 utils/ffmpeg.exe
 
 /*.bat

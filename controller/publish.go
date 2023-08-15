@@ -5,7 +5,6 @@ import (
 	"DoushengABCD/service"
 	"DoushengABCD/utils"
 	"fmt"
-	_ "fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
@@ -23,6 +22,7 @@ type Response struct {
 
 // UploadVideo 投稿接口
 func UploadVideo(c *gin.Context) {
+	// 初始化
 	video := model.Video{FavoriteCount: 0, CommentCount: 0}
 	// 获取token
 	token := c.PostForm("token")
@@ -53,9 +53,9 @@ func UploadVideo(c *gin.Context) {
 	data, err := c.FormFile("data")
 	// 错误处理
 	if err != nil {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: 1,
-			StatusMsg:  err.Error(),
+		c.JSON(http.StatusInternalServerError, Response{
+			StatusCode: 3,
+			StatusMsg:  "获取文件对象失败 " + err.Error(),
 		})
 		return
 	}
@@ -74,21 +74,37 @@ func UploadVideo(c *gin.Context) {
 	saveCoverFile := "./public/" + finalCoverName
 	// 保存文件
 	if err := c.SaveUploadedFile(data, saveVideoFile); err != nil {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: 1,
-			StatusMsg:  err.Error(),
+		c.JSON(http.StatusInternalServerError, Response{
+			StatusCode: 4,
+			StatusMsg:  "文件接收失败 " + err.Error(),
 		})
 		return
 	}
 	// 获取封面
-	getcover(saveVideoFile, saveCoverFile)
+	err = getcover(saveVideoFile, saveCoverFile)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Response{
+			StatusCode: 5,
+			StatusMsg:  "封面生成失败 " + err.Error(),
+		})
+		// 清除视频
+		// 删除视频文件
+		go func() {
+			err = os.Remove(saveVideoFile)
+			if err != nil {
+				println("删除文件失败！！！")
+				return
+			}
+		}()
+		return
+	}
 	// 上传视频到阿里云
 	err = utils.AliyunOSSUpload("videos", finalVideoName, saveVideoFile)
 	// 错误处理
 	if err != nil {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: 1,
-			StatusMsg:  err.Error(),
+		c.JSON(http.StatusInternalServerError, Response{
+			StatusCode: 6,
+			StatusMsg:  "视频上传阿里云失败 " + err.Error(),
 		})
 		return
 	}
@@ -96,9 +112,9 @@ func UploadVideo(c *gin.Context) {
 	err = utils.AliyunOSSUpload("covers", finalCoverName, saveCoverFile)
 	// 错误处理
 	if err != nil {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: 1,
-			StatusMsg:  err.Error(),
+		c.JSON(http.StatusInternalServerError, Response{
+			StatusCode: 7,
+			StatusMsg:  "封面上传阿里云失败 " + err.Error(),
 		})
 		return
 	}
@@ -123,8 +139,8 @@ func UploadVideo(c *gin.Context) {
 	fmt.Println(video)
 	result := model.Db.Table("video").Create(&video)
 	if result.Error != nil {
-		c.JSON(http.StatusOK, Response{
-			StatusCode: 2,
+		c.JSON(http.StatusInternalServerError, Response{
+			StatusCode: 8,
 			StatusMsg:  "数据库上传失败",
 		})
 		return
@@ -169,7 +185,7 @@ func PublishList(c *gin.Context) {
 		Time          int64  `json:"-"`                          //视频发布时间
 	}
 	var videos []video
-	var user_t user
+	var userT user
 	model.Db.Table("video").Where("author_id = ?", userID).Find(&videos)
 	if len(videos) == 0 {
 		c.JSON(http.StatusOK, gin.H{
@@ -177,22 +193,23 @@ func PublishList(c *gin.Context) {
 			"status_msg":  "",
 			"video_list":  nil,
 		})
+		return
 	}
-	for index, video_t := range videos {
-		model.Db.Table("user").Where("id = ?", video_t.AuthorId).Find(&user_t)
-		videos[index].Author = user_t
+	for index, videoT := range videos {
+		model.Db.Table("user").Where("id = ?", videoT.AuthorId).First(&userT)
+		videos[index].Author = userT
 		// 数据库查询是否关注
 
 		// 数据库查询是否点赞
 		var count int64
-		model.Db.Table("like").Where("user_id = ? AND video_id = ?", user_t.ID, videos[index].ID).Count(&count)
+		model.Db.Table("like").Where("user_id = ? AND video_id = ?", userT.ID, videos[index].ID).Count(&count)
 		if count != 0 {
 			videos[index].IsFavorite = true
 		}
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"status_code": 0,
-		"status_msg":  "",
+		"status_msg":  "success",
 		"video_list":  videos,
 	})
 }
