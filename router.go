@@ -26,10 +26,10 @@ func InitRouter(r *gin.Engine) {
 	router.GET("/comment/list/", service.AuthMiddleWare(), controller.GetCommentList)
 
 	// extra apis - II
-	router.POST("/relation/action/")
-	router.GET("/relation/follow/list/")
-	router.GET("/relation/follower/list/")
-	router.GET("/relation/friend/list/")
+	router.POST("/relation/action/", service.AuthMiddleWare(), controller.RelationAction)
+	router.GET("/relation/follow/list/", service.AuthMiddleWare(), controller.FollowList)
+	router.GET("/relation/follower/list/", service.AuthMiddleWare(), controller.FollowerList)
+	router.GET("/relation/friend/list/", service.AuthMiddleWare(), controller.FriendList)
 	router.GET("/message/chat/")
 	router.POST("/message/action/")
 
