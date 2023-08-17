@@ -32,6 +32,22 @@ func Feed(c *gin.Context) {
 			fmt.Println("key不存在")
 		}
 	}
+	var userID int64
+	if token != "" {
+		// 获取userID
+		userID = service.GetIdByToken(token)
+		if userID == 0 {
+			fmt.Println("key不存在")
+			// 返回数据
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status_code": 1,
+				"status_msg":  "fail",
+				"next_time":   math.MaxInt,
+				"video_list":  nil,
+			})
+			return
+		}
+	}
 	// 临时结构体
 	// user
 	type user struct {
@@ -59,6 +75,7 @@ func Feed(c *gin.Context) {
 		PlayURL       string `json:"play_url" gorm:"play_url"`   // 视频播放地址
 		Title         string `json:"title"`                      // 视频标题
 		Time          int64  `json:"-"`                          //视频发布时间
+		IsFollow      bool   `json:"is_follow"`                  // 是否关注
 	}
 	var videos []video
 
@@ -69,12 +86,16 @@ func Feed(c *gin.Context) {
 		var userT user
 		model.Db.Table("user").Where("id = ?", videoT.AuthorId).First(&userT)
 		videos[index].Author = userT
+		var count1 int64
 		// 数据库查询是否关注
-
+		model.Db.Table("follow").Where("user_id_a = ? AND user_id_b = ?", userID, userT.ID).Count(&count1)
+		if count1 != 0 {
+			videos[index].IsFollow = true
+		}
 		// 数据库查询是否点赞
-		var count int64
-		model.Db.Table("like").Where("user_id = ? AND video_id = ?", userT.ID, videos[index].ID).Count(&count)
-		if count != 0 {
+		var count2 int64
+		model.Db.Table("like").Where("user_id = ? AND video_id = ?", userT.ID, videos[index].ID).Count(&count2)
+		if count2 != 0 {
 			videos[index].IsFavorite = true
 		}
 	}
