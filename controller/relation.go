@@ -5,6 +5,7 @@ import (
 	"DoushengABCD/service"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 )
@@ -25,28 +26,82 @@ func RelationAction(c *gin.Context) {
 	// 从Redis获取自己的ID
 	fromUserID := service.GetIdByToken(c.Query("token"))
 	follow := model.Follow{UserIdA: fromUserID, UserIdB: toUserID}
+	//封装成为事务，保证数据库的一致性
+	tx := model.Db.Begin()
 	if actionType == "1" {
 		// 关注
-		res := model.Db.Table("follow").Create(&follow)
+		// follow表
+		res := tx.Table("follow").Create(&follow)
 		if res.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status_code": 1,
 				"status_msg":  "fail",
 			})
+			// 回滚
+			tx.Rollback()
 			return
 		}
-	} else {
+		// 关注者，关注数++
+		res = tx.Table("user").Where("id=?", fromUserID).Update("follow_count", gorm.Expr("follow_count+1"))
+		if res.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status_code": 1,
+				"status_msg":  "fail",
+			})
+			// 回滚
+			tx.Rollback()
+			return
+		}
+		// 被关注者，粉丝数++
+		res = tx.Table("user").Where("id=?", toUserID).Update("follow_count", gorm.Expr("follow_count+1"))
+		if res.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status_code": 1,
+				"status_msg":  "fail",
+			})
+			// 回滚
+			tx.Rollback()
+			return
+		}
+	} else if actionType == "2" {
 		// 取消关注
+		//封装成为事务，保证数据库的一致性
 		res := model.Db.Table("follow").Where("user_id_a = ? AND user_id_b = ?", fromUserID, toUserID).Delete(&follow)
 		if res.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status_code": 1,
 				"status_msg":  "fail",
 			})
+			// 回滚
+			tx.Rollback()
 			return
 		}
+		// 关注者，关注数--
+		res = tx.Table("user").Where("id=?", fromUserID).Update("follow_count", gorm.Expr("follow_count-1"))
+		if res.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status_code": 1,
+				"status_msg":  "fail",
+			})
+			// 回滚
+			tx.Rollback()
+			return
+		}
+		// 被关注者，粉丝数--
+		res = tx.Table("user").Where("id=?", toUserID).Update("follow_count", gorm.Expr("follow_count-1"))
+		if res.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status_code": 1,
+				"status_msg":  "fail",
+			})
+			// 回滚
+			tx.Rollback()
+			return
+		}
+
 	}
 	// 成功情况返回
+	tx.Commit()
 	c.JSON(http.StatusOK, gin.H{
 		"status_code": 0,
 		"status_msg":  "success",
