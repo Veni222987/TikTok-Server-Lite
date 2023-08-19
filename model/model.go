@@ -39,7 +39,7 @@ type Video struct {
 	Time          int64  `gorm:"time"`           // 时间戳
 }
 
-type follow struct {
+type Follow struct {
 	ID      int64 `gorm:"id"`
 	UserIdA int64 `gorm:"user_id_a"` // 关注者
 	UserIdB int64 `gorm:"user_id_b"` // 被关注者
