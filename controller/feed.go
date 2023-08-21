@@ -103,7 +103,7 @@ func Feed(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status_code": 0,
 			"status_msg":  "success",
-			"next_time":   math.MaxInt,
+			"next_time":   9223372036854775807,
 			"video_list":  nil,
 		})
 		return

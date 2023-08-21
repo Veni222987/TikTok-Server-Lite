@@ -6,6 +6,7 @@ import (
 	"DoushengABCD/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"net/http"
 	"os"
 	"os/exec"
@@ -143,15 +144,27 @@ func UploadVideo(c *gin.Context) {
 	}()
 	// 写入数据库
 	video.Time = time.Now().Unix()
-	fmt.Println(video)
-	result := model.Db.Table("video").Create(&video)
+	//封装成为事务，保证数据库的一致性
+	tx := model.Db.Begin()
+	result := tx.Table("video").Create(&video)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, Response{
 			StatusCode: 8,
 			StatusMsg:  "数据库上传失败",
 		})
+		tx.Rollback()
 		return
 	}
+	res := tx.Table("user").Where("id=?", video.AuthorId).Update("work_count", gorm.Expr("work_count+1"))
+	if res != nil {
+		c.JSON(http.StatusInternalServerError, Response{
+			StatusCode: 8,
+			StatusMsg:  "数据库上传失败",
+		})
+		tx.Rollback()
+		return
+	}
+	tx.Commit()
 	// 成功返回响应
 	c.JSON(http.StatusOK, Response{
 		StatusCode: 0,

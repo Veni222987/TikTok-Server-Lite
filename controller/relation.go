@@ -36,6 +36,7 @@ func RelationAction(c *gin.Context) {
 				"status_code": 1,
 				"status_msg":  "无法关注自己",
 			})
+			return
 		}
 		res := tx.Table("follow").Create(&follow)
 		if res.Error != nil {
@@ -71,10 +72,13 @@ func RelationAction(c *gin.Context) {
 		}
 	} else if actionType == "2" {
 		// 取消关注
-		c.JSON(http.StatusOK, gin.H{
-			"status_code": 1,
-			"status_msg":  "操作错误",
-		})
+		if follow.UserIdA == follow.UserIdB {
+			c.JSON(http.StatusOK, gin.H{
+				"status_code": 1,
+				"status_msg":  "无法关注自己",
+			})
+			return
+		}
 		//封装成为事务，保证数据库的一致性
 		res := model.Db.Table("follow").Where("user_id_a = ? AND user_id_b = ?", fromUserID, toUserID).Delete(&follow)
 		if res.Error != nil {
