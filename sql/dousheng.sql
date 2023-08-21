@@ -3,15 +3,15 @@
 
  Source Server         : dousheng
  Source Server Type    : MySQL
- Source Server Version : 80033
+ Source Server Version : 80034
  Source Host           : 47.113.149.158:3306
  Source Schema         : dousheng
 
  Target Server Type    : MySQL
- Target Server Version : 80033
+ Target Server Version : 80034
  File Encoding         : 65001
 
- Date: 14/08/2023 10:43:14
+ Date: 21/08/2023 16:37:07
 */
 
 SET NAMES utf8mb4;
@@ -38,7 +38,18 @@ CREATE TABLE `comment`  (
   `content` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `create_date` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for follow
+-- ----------------------------
+DROP TABLE IF EXISTS `follow`;
+CREATE TABLE `follow`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id_a` bigint NOT NULL COMMENT '关注者',
+  `user_id_b` bigint NOT NULL COMMENT '被关注者',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 33 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for like
@@ -49,7 +60,7 @@ CREATE TABLE `like`  (
   `user_id` bigint NULL DEFAULT NULL,
   `video_id` bigint NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 39 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for user

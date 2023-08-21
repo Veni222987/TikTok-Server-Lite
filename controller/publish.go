@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -147,6 +148,7 @@ func UploadVideo(c *gin.Context) {
 	//封装成为事务，保证数据库的一致性
 	tx := model.Db.Begin()
 	result := tx.Table("video").Create(&video)
+	fmt.Println("视频信息", video)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, Response{
 			StatusCode: 8,
@@ -156,10 +158,10 @@ func UploadVideo(c *gin.Context) {
 		return
 	}
 	res := tx.Table("user").Where("id=?", video.AuthorId).Update("work_count", gorm.Expr("work_count+1"))
-	if res != nil {
+	if res.Error != nil {
 		c.JSON(http.StatusInternalServerError, Response{
 			StatusCode: 8,
-			StatusMsg:  "数据库上传失败",
+			StatusMsg:  "数据库上传失败2",
 		})
 		tx.Rollback()
 		return
@@ -251,10 +253,23 @@ func PublishList(c *gin.Context) {
 // 获取封面
 func getcover(videoPath string, coverPath string) error {
 	// 执行带环境变量的 ffmpeg 命令
-	cmd := exec.Command("./utils/ffmpeg.exe", "-i", videoPath, "-ss", "00:00:00.000", "-vframes", "1", coverPath)
-	err := cmd.Run()
-	if err != nil {
-		return err
+	//获取GOOS
+	osType := runtime.GOOS
+	if osType == "windows" {
+		cmd := exec.Command("./utils/ffmpeg.exe", "-i", videoPath, "-ss", "00:00:00.000", "-vframes", "1", coverPath)
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+		return nil
+	} else if osType == "linux" {
+		cmd := exec.Command("ffmpeg", "-i", videoPath, "-ss", "00:00:00.000", "-vframes", "1", coverPath)
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+		return nil
+	} else {
+		return nil
 	}
-	return nil
 }
