@@ -60,14 +60,14 @@ func Like(ctx *gin.Context) {
 			tx.Rollback()
 			return
 		}
-		res = tx.Table("user").Where("id=?", authorUid.AuthorID).Update("favorite_count", gorm.Expr("favorite_count+1"))
+		res = tx.Table("user").Where("id=?", authorUid.AuthorID).Update("total_favorited", gorm.Expr("total_favorited+1"))
 		if res.Error != nil {
 			panic(res.Error)
 			tx.Rollback()
 			return
 		}
 		//当前用户的喜欢数++
-		res = tx.Table("user").Where("id=?", uid64).Update("total_favorited", gorm.Expr("total_favorited+1"))
+		res = tx.Table("user").Where("id=?", uid64).Update("favorite_count", gorm.Expr("favorite_count+1"))
 		if res.Error != nil {
 			panic(res.Error)
 			tx.Rollback()
@@ -105,14 +105,14 @@ func Like(ctx *gin.Context) {
 			tx.Rollback()
 			return
 		}
-		res = tx.Table("user").Where("id=?", authorUid.AuthorId).Update("favorite_count", gorm.Expr("favorite_count-1"))
+		res = tx.Table("user").Where("id=?", authorUid.AuthorId).Update("total_favorited", gorm.Expr("total_favorited-1"))
 		if res.Error != nil {
 			panic(res.Error)
 			tx.Rollback()
 			return
 		}
 		//当前用户的喜欢数--
-		res = tx.Table("user").Where("id=?", uid64).Update("total_favorited", gorm.Expr("total_favorited-1"))
+		res = tx.Table("user").Where("id=?", uid64).Update("favorite_count", gorm.Expr("favorite_count-1"))
 		if res.Error != nil {
 			panic(res.Error)
 			tx.Rollback()
