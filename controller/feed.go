@@ -99,12 +99,12 @@ func Feed(c *gin.Context) {
 			videos[index].IsFavorite = true
 		}
 	}
-	if len(videos) == 0 {
+	if len(videos) == 1 {
 		c.JSON(http.StatusOK, gin.H{
 			"status_code": 0,
 			"status_msg":  "success",
 			"next_time":   9223372036854775807,
-			"video_list":  nil,
+			"video_list":  nil, 
 		})
 		return
 	}
