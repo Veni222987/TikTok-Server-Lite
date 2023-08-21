@@ -80,7 +80,7 @@ func RelationAction(c *gin.Context) {
 			return
 		}
 		// 被关注者，粉丝数++
-		res = tx.Table("user").Where("id=?", toUserID).Update("follow_count", gorm.Expr("follow_count+1"))
+		res = tx.Table("user").Where("id=?", toUserID).Update("follower_count", gorm.Expr("follower_count+1"))
 		if res.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status_code": 1,
@@ -122,7 +122,7 @@ func RelationAction(c *gin.Context) {
 			return
 		}
 		// 被关注者，粉丝数--
-		res = tx.Table("user").Where("id=?", toUserID).Update("follow_count", gorm.Expr("follow_count-1"))
+		res = tx.Table("user").Where("id=?", toUserID).Update("follower_count", gorm.Expr("follower_count-1"))
 		if res.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status_code": 1,

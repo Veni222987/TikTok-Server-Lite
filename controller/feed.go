@@ -75,7 +75,6 @@ func Feed(c *gin.Context) {
 		PlayURL       string `json:"play_url" gorm:"play_url"`   // 视频播放地址
 		Title         string `json:"title"`                      // 视频标题
 		Time          int64  `json:"-"`                          //视频发布时间
-		IsFollow      bool   `json:"is_follow"`                  // 是否关注
 	}
 	var videos []video
 
@@ -90,13 +89,17 @@ func Feed(c *gin.Context) {
 		// 数据库查询是否关注
 		model.Db.Table("follow").Where("user_id_a = ? AND user_id_b = ?", userID, userT.ID).Count(&count1)
 		if count1 != 0 {
-			videos[index].IsFollow = true
+			videos[index].Author.IsFollow = true
+		} else {
+			videos[index].Author.IsFollow = false
 		}
 		// 数据库查询是否点赞
 		var count2 int64
 		model.Db.Table("like").Where("user_id = ? AND video_id = ?", userID, videos[index].ID).Count(&count2)
 		if count2 != 0 {
 			videos[index].IsFavorite = true
+		} else {
+			videos[index].IsFavorite = false
 		}
 	}
 	if len(videos) == 0 {

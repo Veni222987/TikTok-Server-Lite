@@ -211,7 +211,6 @@ func PublishList(c *gin.Context) {
 		PlayURL       string `json:"play_url" gorm:"play_url"`   // 视频播放地址
 		Title         string `json:"title"`                      // 视频标题
 		Time          int64  `json:"-"`                          //视频发布时间
-		IsFollow      bool   `json:"is_follow"`                  // 是否关注
 	}
 	var videos []video
 	if res := model.Db.Table("video").Where("author_id = ?", userID).Find(&videos); res.Error != nil {
@@ -240,13 +239,17 @@ func PublishList(c *gin.Context) {
 		var count1 int64
 		model.Db.Table("follow").Where("user_id_a = ? AND user_id_b = ?", userID, userT.ID).Count(&count1)
 		if count1 != 0 {
-			videos[index].IsFollow = true
+			videos[index].Author.IsFollow = true
+		} else {
+			videos[index].Author.IsFollow = false
 		}
 		// 数据库查询是否点赞
 		var count2 int64
 		model.Db.Table("like").Where("user_id = ? AND video_id = ?", userT.ID, videos[index].ID).Count(&count2)
 		if count2 != 0 {
 			videos[index].IsFavorite = true
+		} else {
+			videos[index].IsFavorite = false
 		}
 	}
 	c.JSON(http.StatusOK, gin.H{
