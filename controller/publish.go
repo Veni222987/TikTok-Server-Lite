@@ -94,7 +94,7 @@ func UploadVideo(c *gin.Context) {
 		StatusCode: 0,
 		StatusMsg:  "uploaded successfully",
 	})
-	
+
 	// 获取封面
 	err = getcover(saveVideoFile, saveCoverFile)
 	if err != nil {
