@@ -38,7 +38,18 @@ func RelationAction(c *gin.Context) {
 			})
 			return
 		}
-		res := tx.Table("follow").Create(&follow)
+		var count int64
+		res := tx.Table("follow").Where("user_id_a = ? AND user_id_b = ?", follow.UserIdA, follow.UserIdB).count(&count)
+		if res.Error != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"status_code": 1,
+				"status_msg":  "无法重复关注",
+			})
+			// 回滚
+			tx.Rollback()
+			return
+		}
+		res = tx.Table("follow").Create(&follow)
 		if res.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status_code": 1,

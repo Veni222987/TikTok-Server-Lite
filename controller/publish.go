@@ -19,7 +19,7 @@ import (
 
 type Response struct {
 	StatusCode int32  `json:"status_code"`
-	StatusMsg  string `json:"status_msg,omitempty"`
+	StatusMsg  string `json:"status_msg"`
 }
 
 // UploadVideo 投稿接口
@@ -70,7 +70,7 @@ func UploadVideo(c *gin.Context) {
 	}
 	// 获取文件名，例：bear.mp4
 	videoName := filepath.Base(data.Filename)
-	finalName := fmt.Sprintf("%v_%s", video.AuthorId, videoName)
+	//finalName := fmt.Sprintf("%v_%s", video.AuthorId, videoName)
 	// 文件名切分
 	parts := strings.Split(videoName, ".")
 	// 文件名转换
@@ -89,6 +89,12 @@ func UploadVideo(c *gin.Context) {
 		})
 		return
 	}
+	// 提前返回响应
+	c.JSON(http.StatusOK, Response{
+		StatusCode: 0,
+		StatusMsg:  "uploaded successfully",
+	})
+	
 	// 获取封面
 	err = getcover(saveVideoFile, saveCoverFile)
 	if err != nil {
@@ -170,7 +176,7 @@ func UploadVideo(c *gin.Context) {
 	// 成功返回响应
 	c.JSON(http.StatusOK, Response{
 		StatusCode: 0,
-		StatusMsg:  finalName + " uploaded successfully",
+		StatusMsg:  "uploaded successfully",
 	})
 }
 

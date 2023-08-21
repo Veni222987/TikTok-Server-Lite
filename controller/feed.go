@@ -121,7 +121,7 @@ func Feed(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status_code": 0,
 		"status_msg":  "success",
-		"next_time":   videos[len(videos)-1].Time,
+		"next_time":   videos[len(videos)-1].Time - 1,
 		"video_list":  videos,
 	})
 	return
