@@ -5,7 +5,6 @@ import (
 	"DoushengABCD/service"
 	"DoushengABCD/utils"
 	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -134,7 +133,7 @@ func isUserExist(db *gorm.DB, username string) bool {
 func GetUserInfo(ctx *gin.Context) {
 	//获取参数
 	userID := ctx.Query("user_id")
-	fmt.Println("接收id", userID)
+	//fmt.Println("接收id", userID)
 	//token := ctx.Query("token")
 	//根据userID查找数据库
 	var user model.User
