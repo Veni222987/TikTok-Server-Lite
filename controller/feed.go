@@ -94,7 +94,7 @@ func Feed(c *gin.Context) {
 		}
 		// 数据库查询是否点赞
 		var count2 int64
-		model.Db.Table("like").Where("user_id = ? AND video_id = ?", userT.ID, videos[index].ID).Count(&count2)
+		model.Db.Table("like").Where("user_id = ? AND video_id = ?", userID, videos[index].ID).Count(&count2)
 		if count2 != 0 {
 			videos[index].IsFavorite = true
 		}
@@ -104,7 +104,7 @@ func Feed(c *gin.Context) {
 			"status_code": 0,
 			"status_msg":  "success",
 			"next_time":   9223372036854775807,
-			"video_list":  nil, 
+			"video_list":  nil,
 		})
 		return
 	}
