@@ -41,6 +41,7 @@ func InitRedis() {
 }
 
 func IsTokenExist(token string) bool {
+	fmt.Println("鉴权token", token)
 	result, err := RedisClient.Exists(token).Result()
 	if err != nil {
 		panic(err)

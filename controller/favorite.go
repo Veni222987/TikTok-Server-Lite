@@ -10,21 +10,33 @@ import (
 )
 
 func Like(ctx *gin.Context) {
-	token := ctx.Query("token")
 	video_id := ctx.Query("video_id")
 	action_type := ctx.Query("action_type")
 	vid64, err := strconv.ParseInt(video_id, 10, 64)
 	if err != nil {
 		panic(err)
 	}
-	uid64 := service.GetIdByToken(token)
+	uid64 := service.GetIdByToken(ctx.Query("token"))
 	liekLog := model.Like{UserId: uid64, VideoId: vid64}
 	if action_type == "1" {
 		//点赞
+		//检查是否已经点赞
+		var temp []model.Like
+		res := model.Db.Where("user_id=? and video_id=?", uid64, vid64).Find(&temp)
+		if res.Error != nil {
+			panic(res.Error)
+		}
+		if res.RowsAffected != 0 {
+			ctx.JSON(200, gin.H{
+				"status_code": 1,
+				"status_msg":  "已经点赞过了",
+			})
+			return
+		}
 		//封装成为事务，保证数据库的一致性
 		tx := model.Db.Begin()
 		//更新like
-		res := tx.Create(&liekLog)
+		res = tx.Create(&liekLog)
 		fmt.Println("点赞信息", liekLog)
 		if res.Error != nil {
 			panic(res.Error)
@@ -63,7 +75,7 @@ func Like(ctx *gin.Context) {
 		}
 		tx.Commit()
 		ctx.JSON(200, gin.H{
-			"status_code": 200,
+			"status_code": 0,
 			"status_msg":  "点赞成功",
 		})
 	} else if action_type == "2" {
@@ -106,14 +118,15 @@ func Like(ctx *gin.Context) {
 			tx.Rollback()
 			return
 		}
+		tx.Commit()
 		ctx.JSON(200, gin.H{
-			"status_code": 200,
+			"status_code": 0,
 			"status_msg":  "取消点赞成功",
 		})
 	} else {
 		//非法请求
 		ctx.JSON(400, gin.H{
-			"status_code": 400,
+			"status_code": 1,
 			"status_msg":  "非法请求",
 		})
 	}
@@ -132,13 +145,13 @@ func GetFavoriteList(ctx *gin.Context) {
 
 	//查找视频的所有信息
 	type resVideo struct {
-		Id            int64 `gorm:"id"`
-		Author        model.User
-		PlayUrl       string `gorm:"play_url"`       // 视频url
-		CoverUrl      string `gorm:"cover_url"`      // 封面url
-		FavoriteCount int    `gorm:"favorite_count"` // 点赞数量
-		CommentCount  int    `gorm:"comment_count"`  // 评论数量
-		Title         string `gorm:"title"`          // 视频标题
+		Id            int64      `gorm:"id" json:"id"`
+		Author        model.User `json:"author"`
+		PlayUrl       string     `gorm:"play_url" json:"play_url"`             // 视频url
+		CoverUrl      string     `gorm:"cover_url" json:"cover_url"`           // 封面url
+		FavoriteCount int        `gorm:"favorite_count" json:"favorite_count"` // 点赞数量
+		CommentCount  int        `gorm:"comment_count" json:"comment_count"`   // 评论数量
+		Title         string     `gorm:"title" json:"title"`                   // 视频标题
 	}
 
 	var likesVideo []model.Video
@@ -165,7 +178,7 @@ func GetFavoriteList(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, gin.H{
-		"status_code": "200",
+		"status_code": "0",
 		"status_msg":  "成功",
 		"video_list":  likesVideoStruct,
 	})

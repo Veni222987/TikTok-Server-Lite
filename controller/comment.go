@@ -3,6 +3,7 @@ package controller
 import (
 	"DoushengABCD/model"
 	"DoushengABCD/service"
+	"DoushengABCD/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"strconv"
@@ -36,20 +37,22 @@ func Comment(ctx *gin.Context) {
 			panic(res.Error)
 		}
 		var resComment struct {
-			Id         int64
-			User       model.User
-			Content    string
-			CreateDate string
+			Id         int64      `json:"id"`
+			User       model.User `json:"user"`
+			Content    string     `json:"content"`
+			CreateDate string     `json:"create_date"`
 		}
 		if res := model.Db.Where("id=?", service.GetIdByToken(token)).Find(&resComment.User); res.Error != nil {
 			panic(res.Error)
 			return
 		}
 		resComment.Content = commentLog.Content
-		resComment.CreateDate = commentLog.CreateDate.String()
+		resComment.CreateDate = time.Now().Format("2006-01-02 15:04:02")
+
 		ctx.JSON(200, gin.H{
-			"status_code": 200,
+			"status_code": 0,
 			"status_msg":  "评论成功",
+			"comment":     resComment,
 		})
 	} else if action_type == "2" {
 		//取消评论
@@ -63,7 +66,7 @@ func Comment(ctx *gin.Context) {
 			panic(res.Error)
 		}
 		ctx.JSON(200, gin.H{
-			"status_code": 200,
+			"status_code": 0,
 			"status_msg":  "取消评论成功",
 		})
 	} else {
@@ -87,10 +90,10 @@ func GetCommentList(ctx *gin.Context) {
 	}
 
 	type resComment struct {
-		Id         int        `gorm:"id" json:"id"`
-		User       model.User `json:"user"`
-		Content    string     `gorm:"content" json:"content"`
-		CreateDate time.Time  `gorm:"create_date" json:"create_date"`
+		Id         int              `gorm:"id" json:"id"`
+		User       model.User       `json:"user"`
+		Content    string           `gorm:"content" json:"content"`
+		CreateDate utils.CustomTime `gorm:"create_date" json:"create_date"`
 	}
 
 	resCommentList := make([]resComment, len(commentList))
@@ -98,7 +101,7 @@ func GetCommentList(ctx *gin.Context) {
 		resCommentList[i] = resComment{
 			Id:         c.Id,
 			Content:    c.Content,
-			CreateDate: c.CreateDate,
+			CreateDate: utils.CustomTime{c.CreateDate},
 		}
 		//查找User的详细信息
 		res = model.Db.Table("user").Where("id=?", c.UserId).Find(&resCommentList[i].User)
