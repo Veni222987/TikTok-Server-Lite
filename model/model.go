@@ -72,3 +72,15 @@ type Like struct {
 func (*Like) TableName() string {
 	return "like"
 }
+
+type Message struct {
+	Id                int    `gorm:"id" json:"id"`
+	OriginUserId      int64  `gorm:"origin_user_id" json:"from_user_id`
+	DestinationUserId int64  `gorm:"destination_user_id" json:"to_user_id"`
+	Content           string `gorm:"content" json:"content"`
+	CreateDate        int64  `gorm:"create_date" json:"create_time"`
+}
+
+func (*Message) TableName() string {
+	return "message"
+}

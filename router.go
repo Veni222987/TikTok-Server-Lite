@@ -30,7 +30,7 @@ func InitRouter(r *gin.Engine) {
 	router.GET("/relation/follow/list/", service.QueryAuthMiddleWare(), controller.FollowList)
 	router.GET("/relation/follower/list/", service.QueryAuthMiddleWare(), controller.FollowerList)
 	router.GET("/relation/friend/list/", service.QueryAuthMiddleWare(), controller.FriendList)
-	router.GET("/message/chat/")
-	router.POST("/message/action/")
+	router.GET("/message/chat/", service.QueryAuthMiddleWare(), controller.GetChatHistory)
+	router.POST("/message/action/", service.QueryAuthMiddleWare(), controller.SendMessage)
 
 }
