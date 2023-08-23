@@ -16,21 +16,21 @@ func InitRouter(r *gin.Engine) {
 	router.GET("/user/", controller.GetUserInfo)
 	router.POST("/user/register/", controller.Register)
 	router.POST("/user/login/", controller.Login)
-	router.POST("/publish/action/", controller.UploadVideo)
-	router.GET("/publish/list/", service.AuthMiddleWare(), controller.PublishList)
+	router.POST("/publish/action/", service.FormAuthMiddleWare(), controller.UploadVideo)
+	router.GET("/publish/list/", service.QueryAuthMiddleWare(), controller.PublishList)
 
 	// extra apis - I
-	router.POST("/favorite/action/", service.AuthMiddleWare(), controller.Like)
-	router.GET("/favorite/list/", service.AuthMiddleWare(), controller.GetFavoriteList)
-	router.POST("/comment/action/", service.AuthMiddleWare(), controller.Comment)
-	router.GET("/comment/list/", service.AuthMiddleWare(), controller.GetCommentList)
+	router.POST("/favorite/action/", service.QueryAuthMiddleWare(), controller.Like)
+	router.GET("/favorite/list/", service.QueryAuthMiddleWare(), controller.GetFavoriteList)
+	router.POST("/comment/action/", service.QueryAuthMiddleWare(), controller.Comment)
+	router.GET("/comment/list/", service.QueryAuthMiddleWare(), controller.GetCommentList)
 
 	// extra apis - II
-	router.POST("/relation/action/")
-	router.GET("/relation/follow/list/")
-	router.GET("/relation/follower/list/")
-	router.GET("/relation/friend/list/")
-	router.GET("/message/chat/")
-	router.POST("/message/action/")
+	router.POST("/relation/action/", service.QueryAuthMiddleWare(), controller.RelationAction)
+	router.GET("/relation/follow/list/", service.QueryAuthMiddleWare(), controller.FollowList)
+	router.GET("/relation/follower/list/", service.QueryAuthMiddleWare(), controller.FollowerList)
+	router.GET("/relation/friend/list/", service.QueryAuthMiddleWare(), controller.FriendList)
+	router.GET("/message/chat/", service.QueryAuthMiddleWare(), controller.GetChatHistory)
+	router.POST("/message/action/", service.QueryAuthMiddleWare(), controller.SendMessage)
 
 }

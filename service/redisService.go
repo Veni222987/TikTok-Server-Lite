@@ -1,10 +1,11 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/go-redis/redis"
 	"gopkg.in/yaml.v3"
 	"os"
-	"strconv"
 )
 
 type redisInfo struct {
@@ -40,6 +41,7 @@ func InitRedis() {
 }
 
 func IsTokenExist(token string) bool {
+	//fmt.Println("鉴权token", token)
 	result, err := RedisClient.Exists(token).Result()
 	if err != nil {
 		panic(err)
@@ -50,11 +52,43 @@ func IsTokenExist(token string) bool {
 	return true
 }
 
+type resultStruct struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+func GetNameByToken(token string) string {
+	result, err := RedisClient.Get(token).Result()
+	if err != nil {
+		if err == redis.Nil {
+			// Handle the case where the token does not exist in the cache
+			fmt.Println("Token not found in cache:", token)
+			return ""
+		}
+		panic(err)
+	}
+
+	var res resultStruct
+	if err := json.Unmarshal([]byte(result), &res); err != nil {
+		panic(err)
+	}
+	return res.Name
+}
+
 func GetIdByToken(token string) int64 {
 	result, err := RedisClient.Get(token).Result()
 	if err != nil {
+		if err == redis.Nil {
+			// Handle the case where the token does not exist in the cache
+			fmt.Println("Token not found in cache:", token)
+			return 0
+		}
 		panic(err)
 	}
-	result64, _ := strconv.ParseInt(result, 10, 64)
-	return result64
+
+	var res resultStruct
+	if err := json.Unmarshal([]byte(result), &res); err != nil {
+		panic(err)
+	}
+	return res.ID
 }

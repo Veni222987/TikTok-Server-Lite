@@ -3,6 +3,7 @@ package controller
 import (
 	"DoushengABCD/model"
 	"DoushengABCD/service"
+	"DoushengABCD/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"strconv"
@@ -27,22 +28,45 @@ func Comment(ctx *gin.Context) {
 		commentLog.Content = commentText
 		commentLog.CreateDate = time.Now()
 		//更新comment
-		model.Db.Create(&commentLog)
+
+		if res := model.Db.Create(&commentLog); res.Error != nil {
+			panic(res.Error)
+		}
 		//video表评论数++
-		model.Db.Where("id=?", vid64).Update("comment_count", gorm.Expr("comment_count+1"))
+		if res := model.Db.Table("video").Where("id=?", vid64).Update("comment_count", gorm.Expr("comment_count+1")); res.Error != nil {
+			panic(res.Error)
+		}
+		var resComment struct {
+			Id         int64      `json:"id"`
+			User       model.User `json:"user"`
+			Content    string     `json:"content"`
+			CreateDate string     `json:"create_date"`
+		}
+		if res := model.Db.Where("id=?", service.GetIdByToken(token)).Find(&resComment.User); res.Error != nil {
+			panic(res.Error)
+			return
+		}
+		resComment.Content = commentLog.Content
+		resComment.CreateDate = time.Now().Format("2006-01-02 15:04:02")
+
 		ctx.JSON(200, gin.H{
-			"status_code": 200,
+			"status_code": 0,
 			"status_msg":  "评论成功",
+			"comment":     resComment,
 		})
 	} else if action_type == "2" {
 		//取消评论
 		commentToDel := ctx.Query("comment_id")
 		//删除指定评论
-		model.Db.Where("comment_id=?", commentToDel).Delete(&commentLog)
+		if res := model.Db.Where("comment_id=?", commentToDel).Delete(&commentLog); res.Error != nil {
+			panic(res.Error)
+		}
 		//video表评论数--
-		model.Db.Where("id=?", vid64).Update("comment_count", gorm.Expr("comment_count-1"))
+		if res := model.Db.Table("video").Where("id=?", vid64).Update("comment_count", gorm.Expr("comment_count-1")); res.Error != nil {
+			panic(res.Error)
+		}
 		ctx.JSON(200, gin.H{
-			"status_code": 200,
+			"status_code": 0,
 			"status_msg":  "取消评论成功",
 		})
 	} else {
@@ -54,6 +78,7 @@ func Comment(ctx *gin.Context) {
 	}
 }
 
+// 获取评论列表
 func GetCommentList(ctx *gin.Context) {
 	vid64 := ctx.Query("video_id")
 
@@ -65,10 +90,10 @@ func GetCommentList(ctx *gin.Context) {
 	}
 
 	type resComment struct {
-		Id         int `gorm:"id"`
-		User       model.User
-		Content    string    `gorm:"content"`
-		CreateDate time.Time `gorm:"create_date"`
+		Id         int              `gorm:"id" json:"id"`
+		User       model.User       `json:"user"`
+		Content    string           `gorm:"content" json:"content"`
+		CreateDate utils.CustomTime `gorm:"create_date" json:"create_date"`
 	}
 
 	resCommentList := make([]resComment, len(commentList))
@@ -76,7 +101,7 @@ func GetCommentList(ctx *gin.Context) {
 		resCommentList[i] = resComment{
 			Id:         c.Id,
 			Content:    c.Content,
-			CreateDate: c.CreateDate,
+			CreateDate: utils.CustomTime{c.CreateDate},
 		}
 		//查找User的详细信息
 		res = model.Db.Table("user").Where("id=?", c.UserId).Find(&resCommentList[i].User)
@@ -86,8 +111,8 @@ func GetCommentList(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, gin.H{
-		"status_code": "0*",
-		"status_msg":  "成功",
-		"video_list":  resCommentList,
+		"status_code":  0,
+		"status_msg":   "get comment list successfully",
+		"comment_list": resCommentList,
 	})
 }

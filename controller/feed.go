@@ -5,7 +5,7 @@ import (
 	"DoushengABCD/service"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
@@ -18,23 +18,34 @@ func Feed(c *gin.Context) {
 	latestTime := c.Query("latest_time")
 	token := c.Query("token")
 	var err error
-	// 根据参数进行相应处理
+	// 判断时间戳
 	if latestTime != "" {
 		currentTime, err = strconv.ParseInt(latestTime, 10, 64)
 		if err != nil {
 			fmt.Println("无法将字符串转换为数字", err)
-			return
 		}
 	}
 	if token != "" {
 		// 获取userName
-		userName, err := service.RedisClient.Get(token).Result()
-		if err == redis.Nil {
+		userName := service.GetNameByToken(token)
+		if userName == "" {
 			fmt.Println("key不存在")
-		} else if err != nil {
-			panic("获取UserName失败 " + err.Error())
-		} else {
-			fmt.Println("value:", userName)
+		}
+	}
+	var userID int64
+	if token != "" {
+		// 获取userID
+		userID = service.GetIdByToken(token)
+		if userID == 0 {
+			fmt.Println("key不存在")
+			// 返回数据
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status_code": 1,
+				"status_msg":  "fail",
+				"next_time":   math.MaxInt,
+				"video_list":  nil,
+			})
+			return
 		}
 	}
 	// 临时结构体
@@ -66,27 +77,46 @@ func Feed(c *gin.Context) {
 		Time          int64  `json:"-"`                          //视频发布时间
 	}
 	var videos []video
-	var user_t user
+
 	// 查询数据库封装数据
 	model.Db.Table("video").Order("time DESC").Limit(30).Where("time <= ?", currentTime).Find(&videos)
-	for index, video_t := range videos {
-		model.Db.Table("user").Where("id = ?", video_t.AuthorId).Find(&user_t)
-		videos[index].Author = user_t
+	for index, videoT := range videos {
+		fmt.Println(videoT.AuthorId)
+		var userT user
+		model.Db.Table("user").Where("id = ?", videoT.AuthorId).First(&userT)
+		videos[index].Author = userT
+		var count1 int64
 		// 数据库查询是否关注
-
+		model.Db.Table("follow").Where("user_id_a = ? AND user_id_b = ?", userID, userT.ID).Count(&count1)
+		if count1 != 0 {
+			videos[index].Author.IsFollow = true
+		} else {
+			videos[index].Author.IsFollow = false
+		}
 		// 数据库查询是否点赞
-		var count int64
-		model.Db.Table("like").Where("user_id = ? AND video_id = ?", user_t.ID, videos[index].ID).Count(&count)
-		if count != 0 {
+		var count2 int64
+		model.Db.Table("like").Where("user_id = ? AND video_id = ?", userID, videos[index].ID).Count(&count2)
+		if count2 != 0 {
 			videos[index].IsFavorite = true
+		} else {
+			videos[index].IsFavorite = false
 		}
 	}
 	if len(videos) == 0 {
 		c.JSON(http.StatusOK, gin.H{
 			"status_code": 0,
 			"status_msg":  "success",
-			"next_time":   100000000000000000,
+			"next_time":   9223372036854775807,
 			"video_list":  nil,
+		})
+		return
+	}
+	if len(videos) == 1 {
+		c.JSON(http.StatusOK, gin.H{
+			"status_code": 0,
+			"status_msg":  "success",
+			"next_time":   9223372036854775807,
+			"video_list":  videos,
 		})
 		return
 	}
@@ -94,7 +124,8 @@ func Feed(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status_code": 0,
 		"status_msg":  "success",
-		"next_time":   videos[len(videos)-1].Time,
+		"next_time":   videos[len(videos)-1].Time - 1,
 		"video_list":  videos,
 	})
+	return
 }

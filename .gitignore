@@ -1,8 +1,18 @@
 #IDE文件
-.idea
+.idea/
 
 #可执行文件
 *.exe
 
 #云资源配置文件
 config.yaml
+
+*.mp4
+#transfer
+transfer/
+utils/ffmpeg.exe
+
+/*.bat
+*.rar
+
+DoushengABCD

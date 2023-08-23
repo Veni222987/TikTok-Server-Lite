@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bwmarrin/snowflake"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -20,9 +21,10 @@ func RandomString(n int) string {
 	return string(result)
 }
 
-func GenerateToken(username string) string {
-	//使用用户名+时间戳生成token
-	return username + fmt.Sprint(time.Now().Unix())
+func GenerateToken(username string, uid int64) string {
+	//使用用户名+udi生成token
+	str := strconv.FormatInt(uid, 10)
+	return username + str
 }
 
 //var SnowflakeNode snowflake.Node
