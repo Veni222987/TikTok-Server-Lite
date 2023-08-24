@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"DoushengABCD/model"
 	"DoushengABCD/service"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -79,15 +78,15 @@ func Feed(c *gin.Context) {
 	var videos []video
 
 	// 查询数据库封装数据
-	model.Db.Table("video").Order("time DESC").Limit(30).Where("time <= ?", currentTime).Find(&videos)
+	service.Db.Table("video").Order("time DESC").Limit(30).Where("time <= ?", currentTime).Find(&videos)
 	for index, videoT := range videos {
 		fmt.Println(videoT.AuthorId)
 		var userT user
-		model.Db.Table("user").Where("id = ?", videoT.AuthorId).First(&userT)
+		service.Db.Table("user").Where("id = ?", videoT.AuthorId).First(&userT)
 		videos[index].Author = userT
 		var count1 int64
 		// 数据库查询是否关注
-		model.Db.Table("follow").Where("user_id_a = ? AND user_id_b = ?", userID, userT.ID).Count(&count1)
+		service.Db.Table("follow").Where("user_id_a = ? AND user_id_b = ?", userID, userT.ID).Count(&count1)
 		if count1 != 0 {
 			videos[index].Author.IsFollow = true
 		} else {
@@ -95,7 +94,7 @@ func Feed(c *gin.Context) {
 		}
 		// 数据库查询是否点赞
 		var count2 int64
-		model.Db.Table("like").Where("user_id = ? AND video_id = ?", userID, videos[index].ID).Count(&count2)
+		service.Db.Table("like").Where("user_id = ? AND video_id = ?", userID, videos[index].ID).Count(&count2)
 		if count2 != 0 {
 			videos[index].IsFavorite = true
 		} else {

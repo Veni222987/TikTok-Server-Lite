@@ -45,7 +45,7 @@ func UploadVideo(c *gin.Context) {
 		id = utils.GenVideoID()
 		// 检验唯一性数据库查查询操作
 		var count int64
-		res := model.Db.Table("video").Where("id = ?", id).Count(&count)
+		res := service.Db.Table("video").Where("id = ?", id).Count(&count)
 		if res.Error != nil {
 			c.JSON(http.StatusInternalServerError, Response{
 				StatusCode: 1,
@@ -114,7 +114,7 @@ func UploadVideo(c *gin.Context) {
 		return
 	}
 	// 上传视频到阿里云
-	err = utils.AliyunOSSUpload("videos", finalVideoName, saveVideoFile)
+	err = service.AliyunOSSUpload("videos", finalVideoName, saveVideoFile)
 	// 错误处理
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{
@@ -124,7 +124,7 @@ func UploadVideo(c *gin.Context) {
 		return
 	}
 	// 上传封面到阿里云
-	err = utils.AliyunOSSUpload("covers", finalCoverName, saveCoverFile)
+	err = service.AliyunOSSUpload("covers", finalCoverName, saveCoverFile)
 	// 错误处理
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{
@@ -152,7 +152,7 @@ func UploadVideo(c *gin.Context) {
 	// 写入数据库
 	video.Time = time.Now().Unix()
 	//封装成为事务，保证数据库的一致性
-	tx := model.Db.Begin()
+	tx := service.Db.Begin()
 	result := tx.Table("video").Create(&video)
 	fmt.Println("视频信息", video)
 	if result.Error != nil {
@@ -213,7 +213,7 @@ func PublishList(c *gin.Context) {
 		Time          int64  `json:"-"`                          //视频发布时间
 	}
 	var videos []video
-	if res := model.Db.Table("video").Where("author_id = ?", userID).Find(&videos); res.Error != nil {
+	if res := service.Db.Table("video").Where("author_id = ?", userID).Find(&videos); res.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status_code": 0,
 			"status_msg":  "fail",
@@ -230,14 +230,14 @@ func PublishList(c *gin.Context) {
 	}
 	for index, videoT := range videos {
 		var userT user
-		res := model.Db.Table("user").Where("id = ?", videoT.AuthorId).First(&userT)
+		res := service.Db.Table("user").Where("id = ?", videoT.AuthorId).First(&userT)
 		videos[index].Author = userT
 		if res.Error != nil {
 			continue
 		}
 		// 数据库查询是否关注
 		var count1 int64
-		model.Db.Table("follow").Where("user_id_a = ? AND user_id_b = ?", userID, userT.ID).Count(&count1)
+		service.Db.Table("follow").Where("user_id_a = ? AND user_id_b = ?", userID, userT.ID).Count(&count1)
 		if count1 != 0 {
 			videos[index].Author.IsFollow = true
 		} else {
@@ -245,7 +245,7 @@ func PublishList(c *gin.Context) {
 		}
 		// 数据库查询是否点赞
 		var count2 int64
-		model.Db.Table("like").Where("user_id = ? AND video_id = ?", userT.ID, videos[index].ID).Count(&count2)
+		service.Db.Table("like").Where("user_id = ? AND video_id = ?", userT.ID, videos[index].ID).Count(&count2)
 		if count2 != 0 {
 			videos[index].IsFavorite = true
 		} else {

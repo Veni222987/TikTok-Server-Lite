@@ -14,7 +14,7 @@ import (
 
 // 用户注册
 func Register(ctx *gin.Context) {
-	DB := model.Db
+	DB := service.Db
 	//获取参数
 	name := ctx.Query("username") //注意字符串要用双引号
 	password := ctx.Query("password")
@@ -68,7 +68,7 @@ func Register(ctx *gin.Context) {
 
 // 登录功能
 func Login(ctx *gin.Context) {
-	DB := model.Db
+	DB := service.Db
 	//获取参数
 	name := ctx.Query("username")
 	password := ctx.Query("password")
@@ -89,7 +89,7 @@ func Login(ctx *gin.Context) {
 	//获取user_id
 	var uid64 int64
 
-	res := model.Db.Table("user").Select("id").Where("name=?", name).Find(&uid64)
+	res := service.Db.Table("user").Select("id").Where("name=?", name).Find(&uid64)
 	if res.Error != nil {
 		panic(res.Error)
 	}
@@ -102,7 +102,7 @@ func Login(ctx *gin.Context) {
 	}
 	var uInfo uInfoStruct
 
-	model.Db.Table("user").Select("id,name").Where("name=?", name).First(&uInfo)
+	service.Db.Table("user").Select("id,name").Where("name=?", name).First(&uInfo)
 	//序列化
 	userInfoJson, err := json.Marshal(uInfo)
 
@@ -123,7 +123,7 @@ func Login(ctx *gin.Context) {
 // 判断用户名是否存在
 func isUserExist(db *gorm.DB, username string) bool {
 	var account model.Account
-	model.Db.Select("username").Where("username =?", username).First(&account)
+	service.Db.Select("username").Where("username =?", username).First(&account)
 	if len(account.Username) != 0 {
 		return true
 	}
@@ -137,7 +137,7 @@ func GetUserInfo(ctx *gin.Context) {
 	//token := ctx.Query("token")
 	//根据userID查找数据库
 	var user model.User
-	if res := model.Db.Where("id=?", userID).Find(&user); res.Error != nil {
+	if res := service.Db.Where("id=?", userID).Find(&user); res.Error != nil {
 		panic(res.Error)
 	}
 

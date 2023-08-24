@@ -27,7 +27,7 @@ func RelationAction(c *gin.Context) {
 	fromUserID := service.GetIdByToken(c.Query("token"))
 	follow := model.Follow{UserIdA: fromUserID, UserIdB: toUserID}
 	//封装成为事务，保证数据库的一致性
-	tx := model.Db.Begin()
+	tx := service.Db.Begin()
 	if actionType == "1" {
 		// 关注
 		// follow表
@@ -100,7 +100,7 @@ func RelationAction(c *gin.Context) {
 			return
 		}
 		//封装成为事务，保证数据库的一致性
-		res := model.Db.Table("follow").Where("user_id_a = ? AND user_id_b = ?", fromUserID, toUserID).Delete(&follow)
+		res := service.Db.Table("follow").Where("user_id_a = ? AND user_id_b = ?", fromUserID, toUserID).Delete(&follow)
 		if res.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status_code": 1,
@@ -152,7 +152,7 @@ func FollowList(c *gin.Context) {
 	var followList []model.Follow
 	var userList []user
 	// 查询数据库
-	res := model.Db.Table("follow").Where("user_id_a = ?", userID).Find(&followList)
+	res := service.Db.Table("follow").Where("user_id_a = ?", userID).Find(&followList)
 	if res.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status_code": "1",
@@ -163,7 +163,7 @@ func FollowList(c *gin.Context) {
 	}
 	for _, temp := range followList {
 		var userT user
-		res := model.Db.Table("user").Where("id = ?", temp.UserIdB).Find(&userT)
+		res := service.Db.Table("user").Where("id = ?", temp.UserIdB).Find(&userT)
 		if res.Error != nil {
 			continue
 		}
@@ -190,7 +190,7 @@ func FollowerList(c *gin.Context) {
 	var userList []user
 	// 查询数据库
 	// 找谁关注我
-	res := model.Db.Table("follow").Where("user_id_b = ?", userID).Find(&followList)
+	res := service.Db.Table("follow").Where("user_id_b = ?", userID).Find(&followList)
 	if res.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status_code": "1",
@@ -201,13 +201,13 @@ func FollowerList(c *gin.Context) {
 	}
 	for _, temp := range followList {
 		var userT user
-		res := model.Db.Table("user").Where("id = ?", temp.UserIdA).Find(&userT)
+		res := service.Db.Table("user").Where("id = ?", temp.UserIdA).Find(&userT)
 		if res.Error != nil {
 			continue
 		}
 		// 判断我是否关注了
 		var count int64
-		res = model.Db.Table("follow").Where("user_id_a = ? AND user_id_b = ?", userID, userT.Id).Count(&count)
+		res = service.Db.Table("follow").Where("user_id_a = ? AND user_id_b = ?", userID, userT.Id).Count(&count)
 		if res.Error != nil {
 			continue
 		}
@@ -232,7 +232,7 @@ func FriendList(c *gin.Context) {
 	var userList []model.User
 	// 查询数据库
 	// 我关注的谁
-	res := model.Db.Table("follow").Where("user_id_a = ?", userID).Find(&followList)
+	res := service.Db.Table("follow").Where("user_id_a = ?", userID).Find(&followList)
 	if res.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status_code": "1",
@@ -243,13 +243,13 @@ func FriendList(c *gin.Context) {
 	}
 	for _, temp := range followList {
 		var userT model.User
-		res := model.Db.Table("user").Where("id = ?", temp.UserIdB).Find(&userT)
+		res := service.Db.Table("user").Where("id = ?", temp.UserIdB).Find(&userT)
 		if res.Error != nil {
 			continue
 		}
 		// 它是否有关注我
 		var count int64
-		res = model.Db.Table("follow").Where("user_id_a = ? AND user_id_b = ?", userT.Id, userID).Count(&count)
+		res = service.Db.Table("follow").Where("user_id_a = ? AND user_id_b = ?", userT.Id, userID).Count(&count)
 		if res.Error != nil {
 			continue
 		}

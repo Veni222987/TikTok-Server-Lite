@@ -27,7 +27,7 @@ func SendMessage(ctx *gin.Context) {
 		content := ctx.Query("content")
 		//插入数据库
 		messageLog := model.Message{OriginUserId: uid, DestinationUserId: toUserId, Content: content, CreateDate: time.Now().UnixNano() / 1e6}
-		if res := model.Db.Create(&messageLog); res.Error != nil {
+		if res := service.Db.Create(&messageLog); res.Error != nil {
 			panic(res.Error)
 		}
 
@@ -55,11 +55,11 @@ func GetChatHistory(ctx *gin.Context) {
 	var messageLogs []model.Message
 
 	if pre_msg_time == "0" {
-		if res := model.Db.Where("origin_user_id=? and destination_user_id=? and create_date > ?", uid, toUserId, pre_msg_time).Or("origin_user_id=? and destination_user_id=? and create_date > ?", toUserId, uid, pre_msg_time).Order("create_date asc").Find(&messageLogs); res.Error != nil {
+		if res := service.Db.Where("origin_user_id=? and destination_user_id=? and create_date > ?", uid, toUserId, pre_msg_time).Or("origin_user_id=? and destination_user_id=? and create_date > ?", toUserId, uid, pre_msg_time).Order("create_date asc").Find(&messageLogs); res.Error != nil {
 			panic(res.Error)
 		}
 	} else {
-		if res := model.Db.Where("origin_user_id=? and destination_user_id=? and create_date > ?", toUserId, uid, pre_msg_time).Order("create_date asc").Find(&messageLogs); res.Error != nil {
+		if res := service.Db.Where("origin_user_id=? and destination_user_id=? and create_date > ?", toUserId, uid, pre_msg_time).Order("create_date asc").Find(&messageLogs); res.Error != nil {
 			panic(res.Error)
 		}
 	}

@@ -22,7 +22,7 @@ func Like(ctx *gin.Context) {
 		//点赞
 		//检查是否已经点赞
 		var temp []model.Like
-		res := model.Db.Where("user_id=? and video_id=?", uid64, vid64).Find(&temp)
+		res := service.Db.Where("user_id=? and video_id=?", uid64, vid64).Find(&temp)
 		if res.Error != nil {
 			panic(res.Error)
 		}
@@ -34,7 +34,7 @@ func Like(ctx *gin.Context) {
 			return
 		}
 		//封装成为事务，保证数据库的一致性
-		tx := model.Db.Begin()
+		tx := service.Db.Begin()
 		//更新like
 		res = tx.Create(&liekLog)
 		fmt.Println("点赞信息", liekLog)
@@ -81,7 +81,7 @@ func Like(ctx *gin.Context) {
 	} else if action_type == "2" {
 		//取消点赞
 		//更新like
-		tx := model.Db.Begin()
+		tx := service.Db.Begin()
 		res := tx.Where("video_id=?", video_id).Delete(&liekLog)
 		if res.Error != nil {
 			panic(res.Error)
@@ -138,7 +138,7 @@ func GetFavoriteList(ctx *gin.Context) {
 	userID := ctx.Query("user_id")
 	//查找Like表中userID的所有视频id
 	var likesVID []int64
-	res := model.Db.Table("like").Select("video_id").Where("user_id=?", userID).Find(&likesVID)
+	res := service.Db.Table("like").Select("video_id").Where("user_id=?", userID).Find(&likesVID)
 	if res.Error != nil {
 		panic(res.Error)
 	}
@@ -156,7 +156,7 @@ func GetFavoriteList(ctx *gin.Context) {
 
 	var likesVideo []model.Video
 
-	res = model.Db.Table("video").Where("id In ?", likesVID).Find(&likesVideo)
+	res = service.Db.Table("video").Where("id In ?", likesVID).Find(&likesVideo)
 	if res.Error != nil {
 		panic(res.Error)
 	}
@@ -171,7 +171,7 @@ func GetFavoriteList(ctx *gin.Context) {
 			CommentCount:  v.CommentCount,
 			Title:         v.Title,
 		}
-		res = model.Db.Where("id =?", v.AuthorId).Find(&likesVideoStruct[i].Author)
+		res = service.Db.Where("id =?", v.AuthorId).Find(&likesVideoStruct[i].Author)
 		if res.Error != nil {
 			panic(res.Error)
 		}

@@ -2,7 +2,7 @@ package main
 
 import (
 	"DoushengABCD/controller"
-	"DoushengABCD/service"
+	"DoushengABCD/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,21 +16,21 @@ func InitRouter(r *gin.Engine) {
 	router.GET("/user/", controller.GetUserInfo)
 	router.POST("/user/register/", controller.Register)
 	router.POST("/user/login/", controller.Login)
-	router.POST("/publish/action/", service.FormAuthMiddleWare(), controller.UploadVideo)
-	router.GET("/publish/list/", service.QueryAuthMiddleWare(), controller.PublishList)
+	router.POST("/publish/action/", middleware.FormAuthMiddleWare(), controller.UploadVideo)
+	router.GET("/publish/list/", middleware.QueryAuthMiddleWare(), controller.PublishList)
 
 	// extra apis - I
-	router.POST("/favorite/action/", service.QueryAuthMiddleWare(), controller.Like)
-	router.GET("/favorite/list/", service.QueryAuthMiddleWare(), controller.GetFavoriteList)
-	router.POST("/comment/action/", service.QueryAuthMiddleWare(), controller.Comment)
-	router.GET("/comment/list/", service.QueryAuthMiddleWare(), controller.GetCommentList)
+	router.POST("/favorite/action/", middleware.QueryAuthMiddleWare(), controller.Like)
+	router.GET("/favorite/list/", middleware.QueryAuthMiddleWare(), controller.GetFavoriteList)
+	router.POST("/comment/action/", middleware.QueryAuthMiddleWare(), controller.Comment)
+	router.GET("/comment/list/", middleware.QueryAuthMiddleWare(), controller.GetCommentList)
 
 	// extra apis - II
-	router.POST("/relation/action/", service.QueryAuthMiddleWare(), controller.RelationAction)
-	router.GET("/relation/follow/list/", service.QueryAuthMiddleWare(), controller.FollowList)
-	router.GET("/relation/follower/list/", service.QueryAuthMiddleWare(), controller.FollowerList)
-	router.GET("/relation/friend/list/", service.QueryAuthMiddleWare(), controller.FriendList)
-	router.GET("/message/chat/", service.QueryAuthMiddleWare(), controller.GetChatHistory)
-	router.POST("/message/action/", service.QueryAuthMiddleWare(), controller.SendMessage)
+	router.POST("/relation/action/", middleware.QueryAuthMiddleWare(), controller.RelationAction)
+	router.GET("/relation/follow/list/", middleware.QueryAuthMiddleWare(), controller.FollowList)
+	router.GET("/relation/follower/list/", middleware.QueryAuthMiddleWare(), controller.FollowerList)
+	router.GET("/relation/friend/list/", middleware.QueryAuthMiddleWare(), controller.FriendList)
+	router.GET("/message/chat/", middleware.QueryAuthMiddleWare(), controller.GetChatHistory)
+	router.POST("/message/action/", middleware.QueryAuthMiddleWare(), controller.SendMessage)
 
 }

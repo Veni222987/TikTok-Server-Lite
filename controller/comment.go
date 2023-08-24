@@ -29,11 +29,11 @@ func Comment(ctx *gin.Context) {
 		commentLog.CreateDate = time.Now()
 		//更新comment
 
-		if res := model.Db.Create(&commentLog); res.Error != nil {
+		if res := service.Db.Create(&commentLog); res.Error != nil {
 			panic(res.Error)
 		}
 		//video表评论数++
-		if res := model.Db.Table("video").Where("id=?", vid64).Update("comment_count", gorm.Expr("comment_count+1")); res.Error != nil {
+		if res := service.Db.Table("video").Where("id=?", vid64).Update("comment_count", gorm.Expr("comment_count+1")); res.Error != nil {
 			panic(res.Error)
 		}
 		var resComment struct {
@@ -42,7 +42,7 @@ func Comment(ctx *gin.Context) {
 			Content    string     `json:"content"`
 			CreateDate string     `json:"create_date"`
 		}
-		if res := model.Db.Where("id=?", service.GetIdByToken(token)).Find(&resComment.User); res.Error != nil {
+		if res := service.Db.Where("id=?", service.GetIdByToken(token)).Find(&resComment.User); res.Error != nil {
 			panic(res.Error)
 			return
 		}
@@ -58,11 +58,11 @@ func Comment(ctx *gin.Context) {
 		//取消评论
 		commentToDel := ctx.Query("comment_id")
 		//删除指定评论
-		if res := model.Db.Where("comment_id=?", commentToDel).Delete(&commentLog); res.Error != nil {
+		if res := service.Db.Where("comment_id=?", commentToDel).Delete(&commentLog); res.Error != nil {
 			panic(res.Error)
 		}
 		//video表评论数--
-		if res := model.Db.Table("video").Where("id=?", vid64).Update("comment_count", gorm.Expr("comment_count-1")); res.Error != nil {
+		if res := service.Db.Table("video").Where("id=?", vid64).Update("comment_count", gorm.Expr("comment_count-1")); res.Error != nil {
 			panic(res.Error)
 		}
 		ctx.JSON(200, gin.H{
@@ -84,7 +84,7 @@ func GetCommentList(ctx *gin.Context) {
 
 	//查找当前视频所有评论的信息
 	var commentList []model.Comment
-	res := model.Db.Where("video_id=?", vid64).Find(&commentList)
+	res := service.Db.Where("video_id=?", vid64).Find(&commentList)
 	if res.Error != nil {
 		panic(res.Error)
 	}
@@ -104,7 +104,7 @@ func GetCommentList(ctx *gin.Context) {
 			CreateDate: utils.CustomTime{c.CreateDate},
 		}
 		//查找User的详细信息
-		res = model.Db.Table("user").Where("id=?", c.UserId).Find(&resCommentList[i].User)
+		res = service.Db.Table("user").Where("id=?", c.UserId).Find(&resCommentList[i].User)
 		if res.Error != nil {
 			panic(res.Error)
 		}

@@ -1,4 +1,4 @@
-package model
+package service
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ var config struct {
 
 var Db *gorm.DB
 
-func InitDatabases() {
+func InitDatabase() {
 	configFile, err := os.ReadFile("config.yaml")
 	if err != nil {
 		log.Fatal(err)
