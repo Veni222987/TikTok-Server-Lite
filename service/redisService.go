@@ -20,6 +20,7 @@ var redisConfig struct {
 
 var RedisClient *redis.Client
 
+// InitRedis 初始化Redis
 func InitRedis() {
 	configFile, err := os.ReadFile("config.yaml")
 	if err != nil {
@@ -40,8 +41,8 @@ func InitRedis() {
 	})
 }
 
+// IsTokenExist 判断token是否存在
 func IsTokenExist(token string) bool {
-	//fmt.Println("鉴权token", token)
 	result, err := RedisClient.Exists(token).Result()
 	if err != nil {
 		panic(err)
@@ -57,6 +58,7 @@ type resultStruct struct {
 	Name string `json:"name"`
 }
 
+// GetNameByToken 根据token获取用户名
 func GetNameByToken(token string) string {
 	result, err := RedisClient.Get(token).Result()
 	if err != nil {
@@ -75,6 +77,7 @@ func GetNameByToken(token string) string {
 	return res.Name
 }
 
+// GetIdByToken 根据token获取用户id
 func GetIdByToken(token string) int64 {
 	result, err := RedisClient.Get(token).Result()
 	if err != nil {

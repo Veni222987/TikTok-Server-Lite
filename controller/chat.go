@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// SendMessage 发送消息接口
 func SendMessage(ctx *gin.Context) {
 	actionType := ctx.Query("action_type")
 	if len(ctx.Query("content")) == 0 {
@@ -17,7 +18,6 @@ func SendMessage(ctx *gin.Context) {
 		})
 		return
 	}
-
 	if actionType == "1" {
 		uid := service.GetIdByToken(ctx.Query("token"))
 		toUserId, err := strconv.ParseInt(ctx.Query("to_user_id"), 10, 64)
@@ -43,7 +43,7 @@ func SendMessage(ctx *gin.Context) {
 	}
 }
 
-// 获取聊天记录
+// GetChatHistory 获取聊天记录
 func GetChatHistory(ctx *gin.Context) {
 	//println(ctx.Query("token"), "最新时间", ctx.Query("pre_msg_time"), "位数", len(ctx.Query("pre_msg_time")))
 	pre_msg_time := ctx.Query("pre_msg_time")

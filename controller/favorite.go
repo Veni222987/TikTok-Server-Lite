@@ -9,6 +9,7 @@ import (
 	"strconv"
 )
 
+// Like 点赞接口
 func Like(ctx *gin.Context) {
 	video_id := ctx.Query("video_id")
 	action_type := ctx.Query("action_type")
@@ -132,7 +133,7 @@ func Like(ctx *gin.Context) {
 	}
 }
 
-// 获取喜欢列表
+// GetFavoriteList 获取喜欢列表
 func GetFavoriteList(ctx *gin.Context) {
 	//获取参数
 	userID := ctx.Query("user_id")

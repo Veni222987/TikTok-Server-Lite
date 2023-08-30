@@ -12,7 +12,7 @@ func TableConverter() {
 		TagKey("gorm").
 		// 是否添加结构体方法获取表名
 		RealNameMethod("TableName").
-		Dsn("hu1hu:asdfghjkl@tcp(47.113.149.158:3306)/dousheng?charset=utf8").
+		Dsn("username:password@tcp(127.0.0.1:3306)/dousheng?charset=utf8").
 		Run()
 	fmt.Println(err)
 }

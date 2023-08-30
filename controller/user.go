@@ -12,7 +12,7 @@ import (
 	"net/http"
 )
 
-// 用户注册
+// Register 用户注册
 func Register(ctx *gin.Context) {
 	DB := service.Db
 	//获取参数
@@ -66,7 +66,7 @@ func Register(ctx *gin.Context) {
 	})
 }
 
-// 登录功能
+// Login 登录功能
 func Login(ctx *gin.Context) {
 	DB := service.Db
 	//获取参数

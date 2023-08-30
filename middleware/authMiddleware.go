@@ -6,7 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func QueryAuthMiddleWare() gin.HandlerFunc {
+// QueryAuthMiddleware 检测Paras里面的token有效性
+func QueryAuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		token := ctx.Query("token")
 		if service.IsTokenExist(token) {
@@ -23,7 +24,8 @@ func QueryAuthMiddleWare() gin.HandlerFunc {
 	}
 }
 
-func FormAuthMiddleWare() gin.HandlerFunc {
+// FormAuthMiddleware 检测表单token的有效性
+func FormAuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		token := ctx.PostForm("token")
 

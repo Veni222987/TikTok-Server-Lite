@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// 评论操作
+// Comment 评论操作
 func Comment(ctx *gin.Context) {
 	token := ctx.Query("token")
 	video_id := ctx.Query("video_id")
@@ -78,7 +78,7 @@ func Comment(ctx *gin.Context) {
 	}
 }
 
-// 获取评论列表
+// GetCommentList 获取评论列表
 func GetCommentList(ctx *gin.Context) {
 	vid64 := ctx.Query("video_id")
 

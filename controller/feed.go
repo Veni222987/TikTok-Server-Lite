@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+// Feed 获取视频流接口
 func Feed(c *gin.Context) {
 	// 获取当前时间戳（秒级）
 	currentTime := time.Now().Unix()

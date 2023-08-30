@@ -180,6 +180,7 @@ func UploadVideo(c *gin.Context) {
 	})
 }
 
+// PublishList 获取发布列表
 func PublishList(c *gin.Context) {
 	// 获取参数
 	userID := c.Query("user_id")

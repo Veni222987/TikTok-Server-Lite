@@ -24,6 +24,7 @@ var config struct {
 
 var Db *gorm.DB
 
+// InitDatabase 初始化数据库
 func InitDatabase() {
 	configFile, err := os.ReadFile("config.yaml")
 	if err != nil {
@@ -35,6 +36,7 @@ func InitDatabase() {
 		log.Fatal(err)
 	}
 
+	//拼接dsn
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		config.Database.Username,
 		config.Database.Password,

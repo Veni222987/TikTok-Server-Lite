@@ -1,17 +1,17 @@
 database:
-  driver: 
-  host: 
-  port:
-  username: 
-  password: 
-  database:
+  driver: mysql
+  host: 127.0.0.1
+  port: 3306
+  username: test
+  password: asdfghjkl
+  database: dousheng
 
 redis:
-  addr:
+  addr: "127.0.0.1:6379"
   password:
-  DB:
+  DB: 0
 
 OSS:
-  endPoint:
-  accessKey:
-  accessSecret: 
+  endPoint: "https://**********.aliyuncs.com"
+  accessKey: "************"
+  accessSecret: "****************"
