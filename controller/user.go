@@ -54,7 +54,7 @@ func Register(ctx *gin.Context) {
 		"name": name,
 	}
 	userInfoJson, _ := json.Marshal(userInfo)
-	service.RedisClient.Set(token, userInfoJson, 86400000000000)
+	service.RedisClient.Set(token, userInfoJson, 30*86400000000000)
 	//log.Println(token)
 
 	//返回结果
@@ -106,7 +106,7 @@ func Login(ctx *gin.Context) {
 	//序列化
 	userInfoJson, err := json.Marshal(uInfo)
 
-	err = service.RedisClient.Set(token, userInfoJson, 86400000000000).Err()
+	err = service.RedisClient.Set(token, userInfoJson, 30*86400000000000).Err()
 	if err != nil {
 		panic(err)
 	}
